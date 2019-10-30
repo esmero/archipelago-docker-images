@@ -22,8 +22,8 @@ RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 ENV CANTALOUPE_VERSION 4.0.3
 ENV PKGNAME=graphicsmagick
-# 1.3.30 (Released June 23, 2018)
-ENV PKGVER=1.3.30
+# 1.3.33 (Released July 20, 2019)
+ENV PKGVER=1.3.33
 # Uses 50% of the memory of 16. Use 16 if dealing with 48/64 bit pixels color
 ENV QUANTUMDEPTH=8
 ENV PKGSOURCE=http://downloads.sourceforge.net/$PKGNAME/$PKGNAME/$PKGVER/GraphicsMagick-$PKGVER.tar.lz
@@ -49,6 +49,7 @@ RUN apk add --no-cache --update g++ \
                      jasper-dev \
                      libx11-dev \
                      libpng-dev \
+                     libpng \
                      libtool \
                      jasper-dev \
                      bzip2-dev \
@@ -114,7 +115,7 @@ RUN curl -OL https://github.com/medusa-project/cantaloupe/releases/download/v$CA
  && mkdir -p /etc/cantaloupe \
  && cp /usr/local/cantaloupe/deps/Linux-x86-64/lib/* /usr/lib/. 
 # upcoming docker releases: use --chown=cantaloupe
-COPY cantaloupe.properties /etc/cantaloupe/cantaloupe.properties 
+COPY cantaloupeconfig/cantaloupe.properties /etc/cantaloupe/cantaloupe.properties 
 RUN mkdir -p /var/log/cantaloupe \
  && mkdir -p /var/cache/cantaloupe \
  && chown -R cantaloupe /var/log/cantaloupe \
