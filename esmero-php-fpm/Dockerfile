@@ -114,9 +114,8 @@ RUN cd /usr/src && curl https://drupalconsole.com/installer -L -o drupal.phar &&
 
 # Install Fido 
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.0.zip && unzip v1.4.0.zip \
-		&& ln -s /usr/bin/python3 /usr/bin/python \
-		&& ./usr/src/fido-1.4.0/setup.py install \
-		&& ln -s /usr/src/fido-1.4.0/fido/fido.py /usr/bin/fido.py
+		&& ln -s /usr/bin/python3 /usr/bin/python
+RUN cd /usr/src/fido-1.4.0 && ./setup.py install
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
