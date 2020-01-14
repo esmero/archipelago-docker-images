@@ -2,7 +2,7 @@
 # sudo docker build -f Dockerfile.dev -t esmero-php:development . --no-cache`
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
 
-FROM esmero/php-7.3-fpm:8.x-1.0-beta1
+FROM esmero/php-7.3-fpm:8.x-1.0-beta2
 
 # install the extensions we need for xdebug install
 RUN set -eux; \
