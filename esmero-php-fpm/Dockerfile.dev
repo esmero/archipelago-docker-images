@@ -1,5 +1,5 @@
 # build with:
-# sudo docker build -f Dockerfile.dev -t esmero-php:development . --no-cache`
+# sudo docker build -f Dockerfile.dev -t esmero-php:development . --no-cache
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
 
 FROM esmero/php-7.3-fpm:8.x-1.0-beta2
