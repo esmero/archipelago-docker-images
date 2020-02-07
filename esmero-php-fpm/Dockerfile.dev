@@ -19,9 +19,11 @@ RUN { \
 		echo 'xdebug.remote_enable=1'; \
 		echo 'xdebug.remote_handler=dbgp'; \
 		echo 'xdebug.remote_port=9999'; \
-		echo 'xdebug.remote_autostart=1'; \
+		echo 'xdebug.remote_autostart=0'; \
 		echo 'xdebug.remote_connect_back=0'; \
 		echo 'xdebug.remote_timeout=500'; \
+		echo 'xdebug.profiler_enable = 0'; \
+		echo 'xdebug.profiler_enable_trigger = 1'; \
 		echo 'xdebug.idekey=archipelago'; \
 		echo "xdebug.remote_host=host.docker.internal"; \
 		echo "xdebug.remote_log=/tmp/xdebug.log"; \ 
