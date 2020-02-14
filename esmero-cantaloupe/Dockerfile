@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:13-alpine3.9
 
 ENV LANG en_US.UTF-8
 
@@ -8,22 +8,21 @@ ENV LANG en_US.UTF-8
 RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 # Cantaloupe docker starter script
-
+# https://github.com/cantaloupe-project/cantaloupe/releases/tag/v4.1.5
 # Build and run: 
 # $ sudo docker build -t esmero-cantaloupe .
 # $ sudo docker run -d --rm -p 8183:8182 -v ./cantaloupeconfig:/etc/cantaloupe --name esmero-cantaloupe esmero-cantaloupe
 
 # Publish new tag -- PRIVATE
-# $docker login (user diegopino)
-# $ docker docker build -t esmero/cantaloupe-s3:4.0.3
-# $ docker push esmero/cantaloupe-s3:4.0.3
+# $docker login (user diegopino) use your own name folks!
+# $ docker docker build -t esmero/cantaloupe-s3:4.1.5
+# $ docker push esmero/cantaloupe-s3:4.1.5
+# See upgrading from 4.0.3 to 4.1.5 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
 
-#docker push esmero/cantaloupe-s3:4.0.
-
-ENV CANTALOUPE_VERSION 4.0.3
+ENV CANTALOUPE_VERSION 4.1.5
 ENV PKGNAME=graphicsmagick
-# 1.3.30 (Released June 23, 2018)
-ENV PKGVER=1.3.30
+# 1.3.34 (Released Dec 20, 2019)
+ENV PKGVER=1.3.34
 # Uses 50% of the memory of 16. Use 16 if dealing with 48/64 bit pixels color
 ENV QUANTUMDEPTH=8
 ENV PKGSOURCE=http://downloads.sourceforge.net/$PKGNAME/$PKGNAME/$PKGVER/GraphicsMagick-$PKGVER.tar.lz
@@ -73,8 +72,7 @@ RUN wget $PKGSOURCE && \
       --localstatedir=/var \
       --enable-shared \
       --disable-static \
-      --with-gslib \
-      --with-modules=yes \
+      --with-modules \
       --with-threads \
       --with-webp=yes \
       --with-tiff=yes \
@@ -83,6 +81,7 @@ RUN wget $PKGSOURCE && \
       --with-png=yes \
       --with-xml=yes \
       --with-wmf=yes \
+			--with-ttf \
       --with-gs-font-dir=/usr/share/fonts/Type1 \
       --with-quantum-depth=$QUANTUMDEPTH && \
     make && \
