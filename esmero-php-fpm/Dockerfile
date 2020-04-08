@@ -7,7 +7,7 @@ RUN set -eux; \
 	\
 	apk add --no-cache --virtual .build-deps \
 		coreutils \
-    		zlib-dev \
+    zlib-dev \
 		libxml2-dev \
 		libxslt-dev \
 		freetype-dev \
@@ -15,6 +15,12 @@ RUN set -eux; \
 		libpng-dev \
 		libzip-dev \
 		postgresql-dev \
+		php7-dev \
+		# Equivalent of build essentials
+		alpine-sdk \
+		imagemagick \
+		imagemagick-libs \
+		imagemagick-dev \
 	; \
 	\
 	docker-php-ext-configure gd \
@@ -42,7 +48,10 @@ RUN set -eux; \
 			| sort -u \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
+	pecl install imagick; \
+	\
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
+	docker-php-ext-enable --ini-name 20-imagick.ini imagick; \
 	apk del .build-deps
 
 # set recommended PHP.ini settings
@@ -57,6 +66,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
+    echo 'zend.enable_gc = On;' \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = 512M'; \
 		echo 'max_execution_time = 300'; \
@@ -78,13 +88,15 @@ RUN apk -U add --no-cache \
 		imagemagick \
 		mysql-client \
 		file \
-#		openjdk8-jre \
 		curl \
 		nano \
 		ghostscript \
+		poppler-utils \
+		python3 \
 		tesseract-ocr \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
+		exiftool \
 		&& \
 		rm -rf /var/lib/apt/lists/* && \
 		rm /var/cache/apk/*
@@ -100,22 +112,12 @@ RUN ln -s /usr/local/src/drush/drush /usr/bin/drush
 RUN cd /usr/local/src/drush && composer update && composer install
 RUN cd /usr/src && curl https://drupalconsole.com/installer -L -o drupal.phar && mv drupal.phar /usr/local/bin/drupal
 
-# Install Droid from nationalarchives.uk
-#RUN set -eux; \
-#	curl -o 'https://github.com/digital-preservation/droid/zipball/master' /tmp/droid.zip && tar xzf /tmp/droid.zip /usr/local/droid && rm /tmp/droid.zip
+# Install Fido 
+RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.0.zip && unzip v1.4.0.zip \
+		&& ln -s /usr/bin/python3 /usr/bin/python
+RUN cd /usr/src/fido-1.4.0 && ./setup.py install
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
 WORKDIR /var/www/html
 VOLUME ["/var/www/html"]
-# https://www.drupal.org/node/3060/release
-# ENV DRUPAL_VERSION 8.7.5
-# ENV DRUPAL_MD5 39cc326d9db1b4acce9b8716193189fd
-# RUN set -eux; \
-#	curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz; \
-#	echo "${DRUPAL_MD5} *drupal.tar.gz" | md5sum -c -; \
-#	tar -xz --strip-components=1 -f drupal.tar.gz; \
-#	rm drupal.tar.gz; \
-#	chown -R www-data:www-data sites modules themes
-
-# vim:set ft=dockerfile:
