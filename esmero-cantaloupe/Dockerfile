@@ -15,7 +15,7 @@ RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker docker build -t esmero/cantaloupe-s3:4.1.6
+# $ docker build . -t esmero/cantaloupe-s3:4.1.6
 # $ docker push esmero/cantaloupe-s3:4.1.6
 # If moving from Archipelago beta1 to beta3, see upgrading from 4.0.3 to 4.1.6 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
 
