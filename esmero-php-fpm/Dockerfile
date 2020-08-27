@@ -66,7 +66,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    echo 'zend.enable_gc = On;' \
+    		echo 'zend.enable_gc = On;' \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = 512M'; \
 		echo 'max_execution_time = 300'; \
@@ -79,6 +79,17 @@ RUN { \
 		echo 'php_admin_flag[log_errors] = on'; \
 		echo 'catch_workers_output = yes'; \
 	} >> /usr/local/etc/php-fpm.d/www.conf
+
+RUN { \
+		echo 'upload_max_filesize = 512M'; \
+    		echo 'zend.enable_gc = On;' \
+		echo 'post_max_size = 513M'; \
+		echo 'memory_limit = -1'; \
+		echo 'max_execution_time = 600'; \
+		echo 'log_errors = On'; \
+		echo 'error_log = /proc/self/fd/2'; \
+	} > /etc/php/php-cli.ini
+	
 
 # Tools we want to keep
 RUN apk -U add --no-cache \
@@ -100,6 +111,9 @@ RUN apk -U add --no-cache \
 		&& \
 		rm -rf /var/lib/apt/lists/* && \
 		rm /var/cache/apk/*
+
+RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 # Installation of Composer
 RUN cd /usr/src && curl -sS http://getcomposer.org/installer | php
