@@ -88,7 +88,7 @@ RUN { \
 		echo 'max_execution_time = 600'; \
 		echo 'log_errors = On'; \
 		echo 'error_log = /proc/self/fd/2'; \
-	} > /etc/php/php-cli.ini
+	} > /usr/local/etc/php/php-cli.ini
 	
 
 # Tools we want to keep
