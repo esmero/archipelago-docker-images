@@ -42,7 +42,7 @@ RUN cpanm Pod::Coverage Role::Tiny
 RUN cpanm Module::Runtime Sub::Install YAML namespace::autoclean namespace::clean
 RUN cpanm XML::LibXML XML::XPath
 RUN cpanm Catmandu
-RUN cpanm Catmandu::OAI
+RUN cpanm Catmandu::OAI LWP::Protocol::https
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
