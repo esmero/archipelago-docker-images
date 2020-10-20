@@ -4,6 +4,7 @@ ENV LANG en_US.UTF-8
 
 # JRE fails to load fonts if there are no standard fonts in the image; This breaks Cantaloups /admin endpoint
 # see https://github.com/docker-library/openjdk/issues/73#issuecomment-207816707
+# Also make sure you setup temp_pathname in cantaloupe.properties to a safe/stable place since Classes are cached there too.
 
 RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
@@ -21,8 +22,8 @@ RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 ENV CANTALOUPE_VERSION 4.1.6
 ENV PKGNAME=graphicsmagick
-# 1.3.34 (Released Dec 20, 2019)
-ENV PKGVER=1.3.34
+# 1.3.35 (Released Febr 23, 2020)
+ENV PKGVER=1.3.35
 # Uses 50% of the memory of 16. Use 16 if dealing with 48/64 bit pixels color
 ENV QUANTUMDEPTH=8
 ENV PKGSOURCE=http://downloads.sourceforge.net/$PKGNAME/$PKGNAME/$PKGVER/GraphicsMagick-$PKGVER.tar.lz
@@ -100,6 +101,7 @@ RUN wget $PKGSOURCE && \
 
 RUN adduser -S cantaloupe
 RUN apk add --update --no-cache ffmpeg
+RUN apk add --update --no-cache libjpeg-turbo libjpeg-turbo-utils
 
 # Cantaloupe
 WORKDIR /tmp
@@ -121,5 +123,13 @@ RUN mkdir -p /var/log/cantaloupe \
  && chown -R cantaloupe /etc/cantaloupe
 
 USER cantaloupe 
+
+ARG XMX=2g
+ARG XMS=256m
+
+ENV XMS=${XMS}
+ENV XMX=${XMX}
+
+
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xmx2g -jar /usr/local/cantaloupe/cantaloupe-$CANTALOUPE_VERSION.war"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-$CANTALOUPE_VERSION.war"]
