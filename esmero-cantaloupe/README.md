@@ -1,6 +1,6 @@
 ##  Esmero-cantaloupe IIIF Cantaloupe container
 
-Cantaloupe 4.03 Docker Image with Graphicsmagic and ffmpeg processors for the Archipelago Project
+Cantaloupe 4.16 Docker Image with Graphicsmagic, TurboJpeg and ffmpeg processors for the Archipelago Project
 
 ### Building the image
 ```SHELL
@@ -44,8 +44,15 @@ http://localhost:8183/iiif/2/esmero_test_video_by_diego.m4v/full/full/0/default.
 ffmpeg
 GraphicsMagic
 pdfbox
+TurboJpeg
 Kakadu Native processor
 S3 enabled
 Admin interface is enabled
-
 http://localhost:8183/admin
+
+Allows also ENV to be passed via e.g a docker-compose.yml
+Available ones are JavaVM Arguments
+XMX: 2gb (default)
+XMS: 256m (default)
+
+
