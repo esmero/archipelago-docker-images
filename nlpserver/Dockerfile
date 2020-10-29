@@ -1,11 +1,11 @@
 # From https://hub.docker.com/_/python 
 # using slim buster because docs say alpine makes python building slower
 
-FROM python:3.9.0-slim-buster
+FROM python:3.8.6-slim-buster
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y build-essential curl supervisor
+    apt-get install -y curl supervisor
 
 WORKDIR /usr/src
 RUN curl -L "https://github.com/web64/nlpserver/archive/v1.0.1.tar.gz" -O
@@ -14,9 +14,9 @@ RUN rm "v1.0.1.tar.gz" && mv nlpserver-1.0.1 nlpserver
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
-    apt-get -y install -y python-dev python-numpy python3-dev libevent-dev libicu-dev && \
+    apt-get install build-essential software-properties-common -y 
+RUN apt-get -y install -y python-dev python-numpy python3-dev libevent-dev libicu-dev && \
     apt-get -y install -y python3-pip && \
-    python3 -m pip install --default-timeout=100 wheel && \
     python3 -m pip install --no-cache-dir --default-timeout=100 -r requirements.txt
 # English, spanish and Italian
 # TODO add this as built time arguments
