@@ -5,18 +5,18 @@ FROM python:3.9.0-slim-buster
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y git && \
-    apt-get install -y supervisor
+    apt-get install -y curl supervisor
 
 WORKDIR /usr/src
-RUN wget https://github.com/web64/php-nlp-client/archive/v0.40.5.tar.gz && \ 
-    tar -xzf v0.40.5.tar.gz
+RUN curl -L "https://github.com/web64/nlpserver/archive/v1.0.1.tar.gz" -O
+RUN tar -xzf "v1.0.1.tar.gz"
+RUN rm "v1.0.1.tar.gz" && mv nlpserver-1.0.1 nlpserver
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
-  	apt-get -y install -y python-numpy libicu-dev && \
-  	apt-get -y install -y python3-pip && \
-  	python3 -m pip install -r requirements.txt
+    apt-get -y install -y python-numpy libicu-dev && \
+    apt-get -y install -y python3-pip && \
+    python3 -m pip install --default-timeout=100 -r requirements.txt
 # English, spanish and Italian
 # TODO add this as built time arguments
 RUN polyglot download LANG:en
