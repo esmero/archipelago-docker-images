@@ -7,7 +7,8 @@ RUN set -eux; \
 	\
 	apk add --no-cache --virtual .build-deps \
 		coreutils \
-    zlib-dev \
+                zlib-dev \
+		patch \
 		libxml2-dev \
 		libxslt-dev \
 		freetype-dev \
@@ -121,7 +122,7 @@ RUN cd /usr/src && mv composer.phar /usr/bin/composer
 
 # Installation of drush
 RUN git clone https://github.com/drush-ops/drush.git /usr/local/src/drush 
-RUN cd /usr/local/src/drush && git checkout 9.1.0
+RUN cd /usr/local/src/drush && git checkout 10.3.6
 RUN ln -s /usr/local/src/drush/drush /usr/bin/drush
 RUN cd /usr/local/src/drush && composer update && composer install
 RUN cd /usr/src && curl https://drupalconsole.com/installer -L -o drupal.phar && mv drupal.phar /usr/local/bin/drupal
@@ -130,6 +131,15 @@ RUN cd /usr/src && curl https://drupalconsole.com/installer -L -o drupal.phar &&
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.0.zip && unzip v1.4.0.zip \
 		&& ln -s /usr/bin/python3 /usr/bin/python
 RUN cd /usr/src/fido-1.4.0 && ./setup.py install
+
+# Install WACZ
+
+RUN git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz
+RUN cd /usr/local/src/wacz/ && git checkout master
+RUN cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && ./setup.py install
+
+#Clean up sources
+RUN rm -rf /usr/local/src/*
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
