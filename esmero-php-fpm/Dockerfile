@@ -52,7 +52,7 @@ RUN set -eux; \
 	\
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
 	docker-php-ext-enable --ini-name 20-imagick.ini imagick; \
-	apk del .build-deps
+        apk del .build-deps
 
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php
@@ -110,7 +110,6 @@ RUN apk -U add --no-cache \
 		tesseract-ocr-data-spa \
 		exiftool \
 		py3-setuptools \
-		py3-pip \
 		&& \
 		rm -rf /var/lib/apt/lists/* && \
 		rm /var/cache/apk/*
@@ -134,13 +133,21 @@ RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.0.zip 
 RUN cd /usr/src/fido-1.4.0 && ./setup.py install
 
 # Install WACZ
+RUN set -eux; \
+        apk add --no-cache --virtual .build-deps-py \
+                 gcc \
+		 python3-dev \
+		 py3-pip \
+                 linux-headers \
+                 musl-dev \
+                 && \
+		 git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz && \
+                 cd /usr/local/src/wacz/ && git checkout master && \
+                 cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install \
+                 && apk del .build-deps-py
 
-RUN git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz
-RUN cd /usr/local/src/wacz/ && git checkout master
-RUN cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
-
-#Clean up sources
-RUN rm -rf /usr/local/src/*
+#Clean up sources, we need to keep drush one
+RUN rm -rf /usr/local/src/wacz
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
