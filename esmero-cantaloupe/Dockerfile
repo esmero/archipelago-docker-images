@@ -9,18 +9,18 @@ ENV LANG en_US.UTF-8
 RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 # Cantaloupe docker starter script
-# https://github.com/cantaloupe-project/cantaloupe/releases/tag/v4.1.6
+# https://github.com/cantaloupe-project/cantaloupe/releases/tag/v4.1.7
 # Build and run: 
 # $ sudo docker build -t esmero-cantaloupe .
 # $ sudo docker run -d --rm -p 8183:8182 -v ./cantaloupeconfig:/etc/cantaloupe --name esmero-cantaloupe esmero-cantaloupe
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:4.1.6
-# $ docker push esmero/cantaloupe-s3:4.1.6
-# If moving from Archipelago beta1 to beta3, see upgrading from 4.0.3 to 4.1.6 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
+# $ docker build . -t esmero/cantaloupe-s3:4.1.7
+# $ docker push esmero/cantaloupe-s3:4.1.7
+# If moving from Archipelago beta1 to beta3, see upgrading from 4.0.3 to 4.1.7 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
 
-ENV CANTALOUPE_VERSION 4.1.6
+ENV CANTALOUPE_VERSION 4.1.7
 ENV PKGNAME=graphicsmagick
 # 1.3.35 (Released Febr 23, 2020)
 ENV PKGVER=1.3.35
