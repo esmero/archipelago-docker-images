@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.3-fpm-alpine
+FROM php:7.4.9-fpm-alpine3.12
 
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
@@ -24,9 +24,8 @@ RUN set -eux; \
 	; \
 	\
 	docker-php-ext-configure gd \
-		--with-freetype-dir=/usr/include \
-		--with-jpeg-dir=/usr/include \
-		--with-png-dir=/usr/include \
+		--with-freetype=/usr/include \
+		--with-jpeg=/usr/include \
 	; \
 	\
 	docker-php-ext-install -j "$(nproc)" \
@@ -49,9 +48,11 @@ RUN set -eux; \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
 	pecl install imagick; \
+        pecl install apcu; \
 	\
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
-	docker-php-ext-enable --ini-name 20-imagick.ini imagick; \
+	docker-php-ext-enable imagick; \
+        docker-php-ext-enable apcu; \
         apk del .build-deps
 
 # set recommended PHP.ini settings
@@ -143,8 +144,7 @@ RUN set -eux; \
                  && \
 		 git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz && \
                  cd /usr/local/src/wacz/ && git checkout master && \
-                 cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install \
-                 && apk del .build-deps-py
+                 cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
 
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/local/src/wacz
