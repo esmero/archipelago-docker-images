@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.3-fpm-alpine
+FROM php:7.4.9-fpm-alpine3.12
 
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
@@ -7,7 +7,7 @@ RUN set -eux; \
 	\
 	apk add --no-cache --virtual .build-deps \
 		coreutils \
-    zlib-dev \
+                zlib-dev \
 		libxml2-dev \
 		libxslt-dev \
 		freetype-dev \
@@ -24,9 +24,8 @@ RUN set -eux; \
 	; \
 	\
 	docker-php-ext-configure gd \
-		--with-freetype-dir=/usr/include \
-		--with-jpeg-dir=/usr/include \
-		--with-png-dir=/usr/include \
+		--with-freetype=/usr/include \
+		--with-jpeg=/usr/include \
 	; \
 	\
 	docker-php-ext-install -j "$(nproc)" \
@@ -49,10 +48,12 @@ RUN set -eux; \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
 	pecl install imagick; \
+        pecl install apcu; \
 	\
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
-	docker-php-ext-enable --ini-name 20-imagick.ini imagick; \
-	apk del .build-deps
+	docker-php-ext-enable imagick; \
+        docker-php-ext-enable apcu; \
+        apk del .build-deps
 
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php
@@ -94,6 +95,7 @@ RUN { \
 # Tools we want to keep
 RUN apk -U add --no-cache \
 		bash \
+		patch \
 		git openssh \
 		wget \
 		imagemagick \
@@ -108,6 +110,7 @@ RUN apk -U add --no-cache \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
 		exiftool \
+		py3-setuptools \
 		&& \
 		rm -rf /var/lib/apt/lists/* && \
 		rm /var/cache/apk/*
@@ -117,19 +120,34 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 # Installation of Composer
 RUN cd /usr/src && curl -sS http://getcomposer.org/installer | php
-RUN cd /usr/src && mv composer.phar /usr/bin/composer
+RUN cd /usr/src && mv composer.phar /usr/bin/composer && composer self-update && composer self-update --2
 
 # Installation of drush
 RUN git clone https://github.com/drush-ops/drush.git /usr/local/src/drush 
-RUN cd /usr/local/src/drush && git checkout 9.1.0
+RUN cd /usr/local/src/drush && git checkout 10.3.6
 RUN ln -s /usr/local/src/drush/drush /usr/bin/drush
 RUN cd /usr/local/src/drush && composer update && composer install
-RUN cd /usr/src && curl https://drupalconsole.com/installer -L -o drupal.phar && mv drupal.phar /usr/local/bin/drupal
 
 # Install Fido 
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.0.zip && unzip v1.4.0.zip \
 		&& ln -s /usr/bin/python3 /usr/bin/python
 RUN cd /usr/src/fido-1.4.0 && ./setup.py install
+
+# Install WACZ
+RUN set -eux; \
+        apk add --no-cache --virtual .build-deps-py \
+                 gcc \
+		 python3-dev \
+		 py3-pip \
+                 linux-headers \
+                 musl-dev \
+                 && \
+		 git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz && \
+                 cd /usr/local/src/wacz/ && git checkout master && \
+                 cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
+
+#Clean up sources, we need to keep drush one
+RUN rm -rf /usr/local/src/wacz
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
