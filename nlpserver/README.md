@@ -1,4 +1,4 @@
-##  Esmero-nlp NPLWEB64 docker image
+##  Esmero-nlp NLPWEB64 docker image
 
 NLP Archipelago Project built on slim python base image using NLP WEB64 project
 Based on https://github.com/Surt/nlpserver
