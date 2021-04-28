@@ -1,6 +1,6 @@
 ##  Esmero-php FPM 7.4.9 Container
 
-A ready to be used with Archipelago in a docker-compose file with NGINX . Runs a standard PHP 7.3 FPM Container with some embeded extras.
+A ready to be used with Archipelago in a docker-compose file with NGINX . Runs a standard PHP 7.4.9 FPM Container with some embeded extras.
 
 ### Building the image
 ```SHELL
