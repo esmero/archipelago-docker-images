@@ -16,11 +16,11 @@ RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:4.1.7
-# $ docker push esmero/cantaloupe-s3:4.1.7
+# $ docker build . -t esmero/cantaloupe-s3:4.1.9
+# $ docker push esmero/cantaloupe-s3:4.1.9
 # If moving from Archipelago beta1 to beta3, see upgrading from 4.0.3 to 4.1.7 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
 
-ENV CANTALOUPE_VERSION 4.1.7
+ENV CANTALOUPE_VERSION 4.1.9
 ENV PKGNAME=graphicsmagick
 # 1.3.35 (Released Febr 23, 2020)
 ENV PKGVER=1.3.35
@@ -82,7 +82,7 @@ RUN wget $PKGSOURCE && \
       --with-png=yes \
       --with-xml=yes \
       --with-wmf=yes \
-			--with-ttf \
+      --with-ttf \
       --with-gs-font-dir=/usr/share/fonts/Type1 \
       --with-quantum-depth=$QUANTUMDEPTH && \
     make && \
@@ -101,17 +101,22 @@ RUN wget $PKGSOURCE && \
 
 RUN adduser -S cantaloupe
 RUN apk add --update --no-cache ffmpeg
-RUN apk add --update --no-cache libjpeg-turbo libjpeg-turbo-utils
+RUN apk add --update --no-cache libjpeg-turbo libjpeg-turbo-utils maven
 
 # Cantaloupe
 WORKDIR /tmp
-RUN curl -OL https://github.com/medusa-project/cantaloupe/releases/download/v$CANTALOUPE_VERSION/Cantaloupe-$CANTALOUPE_VERSION.zip \
+RUN curl -OL https://github.com/cantaloupe-project/cantaloupe/archive/refs/heads/release/4.1.zip \
  && mkdir -p /usr/local/ \
  && cd /usr/local \
- && unzip /tmp/Cantaloupe-$CANTALOUPE_VERSION.zip \
- && ln -s cantaloupe-$CANTALOUPE_VERSION cantaloupe \
- && rm -rf /tmp/cantaloupe-$CANTALOUPE_VERSION \
- && rm /tmp/Cantaloupe-$CANTALOUPE_VERSION.zip \
+ && unzip /tmp/4.1.zip && cd cantaloupe-release-4.1 && mvn clean package -DskipTests \ 
+ && mv target/cantaloupe-4.1.9-SNAPSHOT.zip /usr/local/ \
+ && cd /usr/local \
+ && unzip cantaloupe-4.1.9-SNAPSHOT.zip \
+ && ln -s cantaloupe-4.1.9-SNAPSHOT cantaloupe \
+ && rm -rf /tmp/4.1.zip \
+ && rm -rf /usr/local/cantaloupe-4.1.9-SNAPSHOT.zip \
+ && rm -rf /usr/local/cantaloupe-release-4.1 \
+ && ls /usr/local/cantaloupe/cantaloupe-* \
  && mkdir -p /etc/cantaloupe \
  && cp /usr/local/cantaloupe/deps/Linux-x86-64/lib/* /usr/lib/. 
 # upcoming docker releases: use --chown=cantaloupe
@@ -132,4 +137,4 @@ ENV XMX=${XMX}
 
 
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-$CANTALOUPE_VERSION.war"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-4.1.9-SNAPSHOT.war"]
