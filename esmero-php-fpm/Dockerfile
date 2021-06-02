@@ -36,6 +36,7 @@ RUN set -eux; \
 		xsl \
 		opcache \
 		exif \
+		pcntl \
 		pgsql \
 		pdo_pgsql \
 		bcmath \
@@ -53,6 +54,7 @@ RUN set -eux; \
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
 	docker-php-ext-enable imagick; \
         docker-php-ext-enable apcu; \
+        docker-php-ext-enable pcntl; \
         apk del .build-deps
 
 # set recommended PHP.ini settings
