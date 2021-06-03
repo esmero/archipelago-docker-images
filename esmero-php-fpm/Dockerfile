@@ -145,7 +145,7 @@ RUN set -eux; \
                  musl-dev \
                  && \
 		 git clone https://github.com/webrecorder/wacz-format.git /usr/local/src/wacz && \
-                 cd /usr/local/src/wacz/ && git checkout master && \
+                 cd /usr/local/src/wacz/ && git checkout main && \
                  cd /usr/local/src/wacz/py-wacz && pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
 
 #Clean up sources, we need to keep drush one
