@@ -1,8 +1,8 @@
 # build with:
-# sudo docker build -f Dockerfile.dev -t esmero-php:development . --no-cache
+# sudo docker build -f Dockerfile.dev -t esmero/php-7.4-fpm:1.0.0-dev-multiarch . --no-cache
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
 
-FROM esmero/php-7.3-fpm:8.x-1.0-beta2
+FROM esmero/php-7.4-fpm:1.0.0-RC2-multiarch
 
 # install the extensions we need for xdebug install
 RUN set -eux; \
@@ -11,11 +11,11 @@ RUN set -eux; \
         g++ \
         make \
 	; \
-	pecl install xdebug-2.8.0; \
+	pecl install xdebug-3.0.4; \
     apk del --no-cache .build-deps
 
 RUN { \
-		echo 'zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20180731/xdebug.so'; \
+		echo 'zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20190902/xdebug.so'; \
 		echo 'xdebug.remote_enable=1'; \
 		echo 'xdebug.remote_handler=dbgp'; \
 		echo 'xdebug.remote_port=9999'; \
