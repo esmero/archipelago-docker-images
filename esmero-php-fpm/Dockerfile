@@ -1,6 +1,5 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.4.9-fpm-alpine3.12
-
+FROM php:7.4-fpm-alpine
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 RUN set -eux; \
@@ -111,6 +110,10 @@ RUN apk -U add --no-cache \
 		tesseract-ocr \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
+                tesseract-ocr-data-deu \
+                tesseract-ocr-data-tam \
+                tesseract-ocr-data-por \
+                mediainfo \
 		exiftool \
 		py3-setuptools \
 		&& \
