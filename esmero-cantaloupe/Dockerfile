@@ -109,24 +109,9 @@ RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-
       ..  \
   && make \
   && make test \
-  && make install
-
-# Install GrokIMageCompression
-
-#WORKDIR /tmp
-#
-#RUN curl -OL https://github.com/GrokImageCompression/grok/archive/refs/tags/v9.2.0.tar.gz \
-#  && tar xzvf v9.2.0.tar.gz \
-#  && cd grok-9.2.0 \
-#  && mkdir BUILD && cd BUILD \
-#  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
-#      -DCMAKE_BUILD_TYPE=Release     \
-#      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/grok-9.2.0 \
-#      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
-#      ..  \
-#  && make \
-#  && make test \
-#  && make install
+  && make install \
+  && rm -rf /tmp/libjpeg-turbo-2.0.1.tar.gz \
+  && rm -rf /tmp/libjpeg-turbo-2.0.1
 
 WORKDIR /tmp
 
@@ -142,31 +127,31 @@ RUN curl -OL https://github.com/jasper-software/jasper/archive/version-2.0.32/ja
       ..  \
   && make \
   && make test \
-  && make install
+  && make install \
+  && rm -rf /tmp/jasper-2.0.32.tar.gz \
+  && rm -r /tmp/jasper-version-2.0.32
 
 # Cantaloupe
 WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN curl -OL https://github.com/cantaloupe-project/cantaloupe/archive/refs/heads/release/5.0.zip \
+RUN curl -OL https://github.com/cantaloupe-project/cantaloupe/archive/refs/tags/v${CANTALOUPE_VERSION}.zip \
  && mkdir -p /usr/local/ \
+ && unzip /tmp/v${CANTALOUPE_VERSION}.zip && cd cantaloupe-${CANTALOUPE_VERSION} && mvn clean package -DskipTests \ 
+ && mv target/cantaloupe-${CANTALOUPE_VERSION}.zip /usr/local/ \
  && cd /usr/local \
- && unzip /tmp/5.0.zip && cd cantaloupe-release-5.0 && mvn clean package -DskipTests \ 
- && mv target/cantaloupe-5.0.4.zip /usr/local/ \
- && cd /usr/local \
- && unzip cantaloupe-5.0.4.zip \
- && ln -s cantaloupe-5.0.4 cantaloupe \
- && rm -rf /tmp/5.0.zip \
- && rm -rf /usr/local/cantaloupe-release-5.0.zip \
- && rm -rf /usr/local/cantaloupe-release-5.0 \
+ && unzip cantaloupe-${CANTALOUPE_VERSION}.zip \
+ && ln -s cantaloupe-${CANTALOUPE_VERSION} cantaloupe \
+ && rm -rf /tmp/v${CANTALOUPE_VERSION}.zip \
+ && rm -rf /usr/local/cantaloupe-${CANTALOUPE_VERSION}.zip \
  && ls /usr/local/cantaloupe/cantaloupe-* \
  && mkdir -p /etc/cantaloupe
 
 
 ARG user=cantaloupe
 ARG home=/home/$user
-RUN adduser --home $home $user
+RUN adduser -u 8183 --home $home $user
 RUN chown -R $user $home
 
 # upcoming docker releases: use --chown=cantaloupe
@@ -189,5 +174,5 @@ USER $user
 
 
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-5.0.4.jar"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-${CANTALOUPE_VERSION}.jar"]
 
