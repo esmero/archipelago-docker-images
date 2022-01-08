@@ -23,10 +23,12 @@ RUN apt-get -y install -y python-dev python-numpy python3-dev libevent-dev libic
 RUN polyglot download LANG:en
 RUN polyglot download LANG:es
 RUN polyglot download LANG:it
+RUN polyglot download LANG:hi
 
 RUN python3 -m spacy download en && \
     python3 -m spacy download xx && \
     python3 -m spacy download es && \
+    python3 -m spacy download hi && \
     python3 -m spacy download it
 
  # Supervisor
