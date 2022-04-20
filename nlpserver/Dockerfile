@@ -24,7 +24,7 @@ RUN apt-get update &&  apt-get -y install -y python-dev python-numpy python3-dev
 # We can't use requirements.txt because of custom ARM64 pycld2
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 newspaper3k
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then BRANCH=master; elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then BRANCH=aarch64; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then BRANCH=aarch64; else BRANCH=master; fi \
-  && python3 -m pip install --no-cache-dir --default-timeout=100 -e git+git://github.com/DiegoPino/pycld2.git@${BRANCH}#egg=pycld2
+  && python3 -m pip install --no-cache-dir --default-timeout=100 -e git+https://github.com/DiegoPino/pycld2.git@${BRANCH}#egg=pycld2
 # RUN python3 -m pip install --no-cache-dir --default-timeout=100 -e git+git://github.com/DiegoPino/pycld2.git@aarch64#egg=pycld2
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 gensim 
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 pyicu numpy Flask morfessor langid BeautifulSoup4 afinn textblob
