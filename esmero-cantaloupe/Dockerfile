@@ -3,7 +3,7 @@
 # Also make sure you setup temp_pathname in cantaloupe.properties to a safe/stable place since Classes are cached there too.
 
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
@@ -61,23 +61,20 @@ ENV JAVA_HOME=/opt/java/openjdk \
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:4.1.9
-# $ docker push esmero/cantaloupe-s3:4.1.9
-# If moving from Archipelago beta1 to beta3, see upgrading from 4.0.3 to 4.1.7 https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#40x--41
+# $ docker build . -t esmero/cantaloupe-s3:6.0.0
+# $ docker push esmero/cantaloupe-s3:6.0.0
+# If moving from Archipelago RC3, see upgrading from 4.1 to 5.x https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#41x--50
+# and https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#50--60
 
-ENV CANTALOUPE_VERSION 4.1.10
-ENV PKGNAME=graphicsmagick
-# 1.3.35 (Released Febr 23, 2020)
-ENV PKGVER=1.3.35
-# Uses 50% of the memory of 16. Use 16 if dealing with 48/64 bit pixels color
-ENV QUANTUMDEPTH=8
-ENV PKGSOURCE=http://downloads.sourceforge.net/$PKGNAME/$PKGNAME/$PKGVER/GraphicsMagick-$PKGVER.tar.lz
+
+ENV CANTALOUPE_VERSION 6.0.0
 
 EXPOSE 8182
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		ffmpeg \
 		wget \
+                nasm \
   	        libopenjp2-tools \
                 libopenjp2-7-dev \
                 liblcms2-dev \
@@ -85,7 +82,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 libzstd-dev \
                 libtiff-dev \
                 libjpeg-dev \
-                libcairo2-dev libjpeg62-turbo-dev libpango1.0-dev libgif-dev build-essential \
+                libcairo2-dev libpango1.0-dev libgif-dev build-essential \
                 zlib1g-dev \
                 libwebp-dev \
                 libimage-exiftool-perl \
@@ -99,35 +96,41 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 zlib1g zlib1g-dev libxml2 libxml2-dev libltdl-dev libpng-dev libtool libopenjp2-7 libtiff-dev cmake automake autoconf make gcc g++ libimage-exiftool-perl  libfreetype6-dev \
                 && rm -rf /var/lib/apt/lists/*
 
-# Install TurboJpegProcessor dependencies
-RUN mkdir -p /opt/libjpeg-turbo/lib
+# Install TurboJpegProcessor
+WORKDIR /tmp
+RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
+  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
+  && cd libjpeg-turbo-2.0.1 \
+  && mkdir BUILD && cd BUILD \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DWITH_JAVA=1 \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DENABLE_STATIC=FALSE       \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
+      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+      ..  \
+  && make \
+  && make install
 
-# Graphicsmagick dependencies
-#RUN apk add --no-cache --update g++ \
-#                     gcc \
-#                     make \
-#                     automake \
-#                     autoconf \
-#                     git \
-#                     lzip \
-#                     wget \
-#                     sdl-dev \
-#                     giflib-dev \
-#                     libjpeg-turbo-dev \
-#                     lcms2-dev \
-#                     libwmf-dev \
-#                     jasper-dev \
-#                     libx11-dev \
-#                     libpng-dev \
-#                     libtool \
-#                     jasper-dev \
-#                     bzip2-dev \
-#                     zlib-dev \
-#                     libxml2-dev \
-#                     tiff-dev \
-#                     exiftool \
-#                     freetype-dev \
-#                     libgomp 
+# Install GrokIMageCompression
+
+WORKDIR /tmp
+
+
+#RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+
+
+RUN curl -OL https://github.com/GrokImageCompression/grok/archive/refs/tags/v9.7.6.tar.gz \
+  && tar xzvf v9.7.6.tar.gz \
+  && cd grok-9.7.6 \
+  && mkdir BUILD && cd BUILD \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/grok-9.7.6 \
+      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+      ..  \
+  && make \
+  && make install
 
 WORKDIR /tmp
 
@@ -145,63 +148,23 @@ RUN curl -OL https://github.com/jasper-software/jasper/archive/version-2.0.32/ja
   && make test \
   && make install
 
-WORKDIR /tmp
-RUN wget $PKGSOURCE && \
-    lzip -d -c GraphicsMagick-$PKGVER.tar.lz | tar -xvf - && \
-    cd GraphicsMagick-$PKGVER && \
-    ./configure \
-      --build=$CBUILD \
-      --host=$CHOST \
-      --prefix=/usr \
-      --sysconfdir=/etc \
-      --enable-magick-compat \
-      --mandir=/usr/share/man \
-      --infodir=/usr/share/info \
-      --localstatedir=/var \
-      --enable-shared \
-      --disable-static \
-      --with-modules \
-      --with-threads \
-      --with-webp=yes \
-      --with-tiff=yes \
-      --with-jpeg=yes \
-      --with-jp2=yes \
-      --with-png=yes \
-      --with-xml=yes \
-      --with-wmf=yes \
-      --with-ttf \
-      --with-gs-font-dir=/usr/share/fonts/Type1 \
-      --with-quantum-depth=$QUANTUMDEPTH && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf GraphicsMagick-$PKGVER && \
-    rm GraphicsMagick-$PKGVER.tar.lz
-  
-
 # Cantaloupe
 WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN curl -OL https://github.com/cantaloupe-project/cantaloupe/archive/refs/heads/release/4.1.zip \
- && mkdir -p /usr/local/ \
- && cd /usr/local \
- && unzip /tmp/4.1.zip && cd cantaloupe-release-4.1 && mvn clean package -DskipTests \ 
- && mv target/cantaloupe-4.1.10-SNAPSHOT.zip /usr/local/ \
- && cd /usr/local \
- && unzip cantaloupe-4.1.10-SNAPSHOT.zip \
- && ln -s cantaloupe-4.1.10-SNAPSHOT cantaloupe \
- && rm -rf /tmp/4.1.zip \
- && rm -rf /usr/local/cantaloupe-4.1.10-SNAPSHOT.zip \
- && rm -rf /usr/local/cantaloupe-release-4.1 \
- && ls /usr/local/cantaloupe/cantaloupe-* \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
+ && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
+ && mvn clean package -DskipTests \ 
+ && mkdir /usr/local/cantaloupe/ \
  && mkdir -p /etc/cantaloupe
 
+RUN cp /usr/local/cantaloupe-build/target/cantaloupe-6.0-SNAPSHOT.jar   /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar
+RUN rm -rf /usr/local/cantaloupe-build/
 
 ARG user=cantaloupe
 ARG home=/home/$user
-RUN adduser --home $home $user
+RUN adduser -u 8183 --home $home $user
 RUN chown -R $user $home
 
 # upcoming docker releases: use --chown=cantaloupe
@@ -221,8 +184,6 @@ ENV XMX=${XMX}
 
 USER $user
 
-
-
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-4.1.10-SNAPSHOT.war"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
 
