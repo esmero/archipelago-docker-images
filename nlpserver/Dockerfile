@@ -12,9 +12,9 @@ RUN apt-get update && \
     apt-get install -y curl supervisor
 
 WORKDIR /usr/src
-RUN curl -L "https://github.com/web64/nlpserver/archive/v1.0.1.tar.gz" -O
-RUN tar -xzf "v1.0.1.tar.gz"
-RUN rm "v1.0.1.tar.gz" && mv nlpserver-1.0.1 nlpserver
+RUN curl -L "https://github.com/digitaldogsbody/nlpserver-fasttext/archive/refs/tags/v1.0.2.tar.gz" -O
+RUN tar -xzf "v1.0.2.tar.gz"
+RUN rm "v1.0.2.tar.gz" && mv nlpserver-fasttext-1.0.2 nlpserver
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
@@ -31,6 +31,7 @@ RUN python3 -m pip install --no-cache-dir --default-timeout=100 pyicu numpy Flas
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 spacy
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 polyglot
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 readability-lxml
+RUN python3 -m pip install --no-cache-dir --default-timeout=100 git+https://github.com/facebookresearch/fastText.git
 
 # English, spanish and Italian
 # TODO add this as built time arguments
@@ -48,6 +49,9 @@ RUN python3 -m spacy download en && \
     python3 -m spacy download pt && \
     python3 -m spacy download de && \
     python3 -m spacy download it 
+
+# fasttext Language Detection Model
+RUN curl -L "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin" -O
 
  # Supervisor
 COPY nlpserver.conf /etc/supervisor/conf.d
