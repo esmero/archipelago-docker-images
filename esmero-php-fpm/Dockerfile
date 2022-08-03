@@ -44,6 +44,7 @@ RUN set -eux; \
 		imagemagick \
 		imagemagick-libs \
 		imagemagick-dev \
+                icu-dev \
 	; \
 	\
 	docker-php-ext-configure gd \
@@ -51,6 +52,8 @@ RUN set -eux; \
 		--with-jpeg=/usr/include \
 	; \
 	\
+        docker-php-ext-configure intl; \
+        \
 	docker-php-ext-install -j "$(nproc)" \
 		gd \
 		zip \
@@ -63,6 +66,7 @@ RUN set -eux; \
 		pgsql \
 		pdo_pgsql \
 		bcmath \
+		intl \
 	; \
 	\
 	runDeps="$( \
@@ -80,6 +84,7 @@ RUN set -eux; \
         docker-php-ext-enable apcu; \
         docker-php-ext-enable pcntl; \
         docker-php-ext-enable redis.so; \
+        docker-php-ext-enable intl; \
         apk del .build-deps
 
 # set recommended PHP.ini settings
