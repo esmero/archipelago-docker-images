@@ -247,11 +247,10 @@ WORKDIR /usr/src/
 RUN cd /usr/src && curl -sS http://getcomposer.org/installer | php
 RUN cd /usr/src && mv composer.phar /usr/bin/composer && composer self-update && composer self-update --2
 
-# Installation of drush
-RUN git clone https://github.com/drush-ops/drush.git /usr/local/src/drush 
-RUN cd /usr/local/src/drush && git checkout 11.0.5
-RUN ln -s /usr/local/src/drush/drush /usr/bin/drush
-RUN cd /usr/local/src/drush && composer update && composer install
+WORKDIR /usr/bin/
+# Installation of drush launcher / Drush will be installed via composer later
+RUN wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/latest/download/drush.phar
+RUN chmod +x drush.phar && mv drush.phar drush
 
 # Install Fido 
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.1.zip && unzip v1.4.1.zip \
@@ -260,7 +259,8 @@ RUN cd /usr/src/fido-1.4.1 && ./setup.py install
 
 # Install WACZ
 RUN set -eux; \
-        apk add --no-cache --virtual .build-deps-py \
+\
+        apk update && apk add --no-cache --virtual .build-deps-py \
                  gcc \
 		 python3-dev \
 		 py3-pip \
@@ -271,8 +271,65 @@ RUN set -eux; \
                  cd /usr/local/src/wacz/ && git checkout main && \
                  pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
 
+# Build Image Magick with JP2 Support
+RUN set -eux; \
+        apk update && apk add --no-cache --virtual .build-deps-imagemagick \
+           openjpeg-dev \
+           chrpath \
+           fontconfig-dev \ 
+           freetype-dev \
+           ghostscript-dev \
+           lcms2-dev \
+           libheif-dev \
+           libjpeg-turbo-dev \
+           libpng-dev \
+           libtool \
+           libwebp-dev \
+           libx11-dev \
+           libxext-dev \
+           libxml2-dev \
+           perl-dev \
+           tiff-dev \
+           zlib-dev \
+           libraw-dev \
+           make \
+           openexr-dev \
+           libwmf-dev \ 
+           libltdl \
+           graphviz-dev \
+           bzip2-dev \
+           pango-dev \ 
+           libzip-dev \
+           alpine-sdk \
+           linux-headers \
+           musl-dev \
+           && cd /usr/local/src/ \
+           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.0-31.tar.gz \
+           && tar xzvf ImageMagick-7.1.0-31.tar.gz && rm ImageMagick-7.1.0-31.tar.gz && cd ImageMagick-7.1.0-31 && \
+            ./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --mandir=/usr/share/man \
+            --infodir=/usr/share/info \
+            --enable-static \
+            --disable-openmp \
+            --with-threads \
+            --with-x \               
+            --with-tiff \            
+            --with-png \      
+            --with-webp \    
+           --with-gslib \     
+           --with-gs-font-dir=/usr/share/fonts/Type1 \       
+           --with-heic \          
+           --with-modules \         
+           --with-xml \        
+           --with-perl \     
+           --with-perl-options="PREFIX=/usr INSTALLDIRS=vendor" \
+           && make && make install; \
+           apk del .build-deps-imagemagick;
+
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/local/src/wacz
+RUN rm -rf /usr/local/src/ImageMagick-7.1.0-31
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
