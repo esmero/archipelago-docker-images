@@ -17,11 +17,10 @@ RUN set -eux; \
 RUN { \
 		echo 'zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20200930/xdebug.so'; \
 		echo 'xdebug.remote_handler=dbgp'; \
-		echo 'xdebug.client_port=9999'; \
+		echo 'xdebug.client_port=9003'; \
 		echo 'xdebug.start_with_request=yes'; \
 		echo 'xdebug.connect_timeout_ms=500'; \
 		echo 'xdebug.mode=develop,debug'; \
-		echo 'xdebug.start_with_request=trigger'; \
 		echo 'xdebug.idekey=archipelago'; \
 		echo "xdebug.client_host=host.docker.internal"; \
 		echo "xdebug.log=/tmp/xdebug.log"; \ 
