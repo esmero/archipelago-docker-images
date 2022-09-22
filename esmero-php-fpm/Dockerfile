@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/9/system-requirements/drupal-9-php-requirements
-FROM php:8.0.16-fpm-alpine3.15
+FROM php:8.1.10-fpm-alpine3.15
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -260,7 +260,7 @@ RUN chmod +x drush.phar && mv drush.phar drush
 # Install Fido 
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.1.zip && unzip v1.4.1.zip \
 		&& ln -s /usr/bin/python3 /usr/bin/python && pip install wheel
-RUN cd /usr/src/fido-1.4.1 && ./setup.py install
+RUN cd /usr/src/fido-1.4.1 && ./setup.py install && yes | fido-update-signatures
 
 # Install WACZ
 RUN set -eux; \
