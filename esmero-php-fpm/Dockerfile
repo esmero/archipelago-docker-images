@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/9/system-requirements/drupal-9-php-requirements
-FROM php:8.0.16-fpm-alpine3.15
+FROM php:8.0.24-fpm-alpine3.15
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
