@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/9/system-requirements/drupal-9-php-requirements
-FROM php:8.0.24-fpm-alpine3.15
+FROM php:8.0.28-fpm-alpine3.16
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -274,7 +274,8 @@ RUN set -eux; \
                  && \
 		 git clone https://github.com/webrecorder/py-wacz /usr/local/src/wacz && \
                  cd /usr/local/src/wacz/ && git checkout main && \
-                 pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
+                 pip3 install --upgrade setuptools && \
+                 pip3 install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
