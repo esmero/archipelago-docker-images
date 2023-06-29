@@ -99,7 +99,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    		echo 'zend.enable_gc = On;' \
+    		echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = 512M'; \
 		echo 'max_execution_time = 300'; \
@@ -115,7 +115,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    		echo 'zend.enable_gc = On;' \
+    		echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = -1'; \
 		echo 'max_execution_time = 600'; \
