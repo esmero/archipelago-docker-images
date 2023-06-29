@@ -29,7 +29,7 @@ if [ "${NGXBLOCKER_ENABLE}" = true ]; then
     if [ ! -L /etc/nginx/conf.d/globalblacklist.conf ]; then
         ln -s /etc/nginx/bots_settings_conf.d/globalblacklist.conf /etc/nginx/conf.d/globalblacklist.conf
     fi
-    if ! grep -q blackbots.conf /etc/nginx/templates/bots.include.copy; then
+    if ! grep -q blockbots.conf /etc/nginx/templates/bots.include.copy; then
         echo "include /etc/nginx/bots.d/blockbots.conf;" >> /etc/nginx/templates/bots.include.copy
     fi
     if ! grep -q ddos.conf /etc/nginx/templates/bots.include.copy; then
