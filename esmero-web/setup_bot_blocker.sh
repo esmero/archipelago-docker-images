@@ -17,8 +17,6 @@ fi
 
 if [ ! -f /etc/nginx/templates/bots.include.copy ]; then
     touch /etc/nginx/templates/bots.include.copy
-else
-    cp /etc/nginx/templates/bots.include.copy /etc/nginx/templates/bots.include.template
 fi
 if [ ! -f /etc/nginx/templates/bots.include.template ]; then
     touch /etc/nginx/templates/bots.include.template
@@ -32,11 +30,12 @@ if [ "${NGXBLOCKER_ENABLE}" = true ]; then
         ln -s /etc/nginx/bots_settings_conf.d/globalblacklist.conf /etc/nginx/conf.d/globalblacklist.conf
     fi
     if ! grep -q blackbots.conf /etc/nginx/templates/bots.include.copy; then
-        echo "include /etc/nginx/bots.d/blackbots.conf;" >> /etc/nginx/templates/bots.include.copy
+        echo "include /etc/nginx/bots.d/blockbots.conf;" >> /etc/nginx/templates/bots.include.copy
     fi
     if ! grep -q ddos.conf /etc/nginx/templates/bots.include.copy; then
         echo "include /etc/nginx/bots.d/ddos.conf;" >> /etc/nginx/templates/bots.include.copy
     fi
+    cp /etc/nginx/templates/bots.include.copy /etc/nginx/templates/bots.include.template
 else
     >|/etc/nginx/templates/bots.include.template
     if [ -L /etc/nginx/conf.d/botblocker-nginx-settings.conf ]; then
