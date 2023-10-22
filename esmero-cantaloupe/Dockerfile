@@ -153,7 +153,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
+RUN git clone https://github.com/esmero/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-593 \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
  && mvn clean package -DskipTests \ 
  && mkdir /usr/local/cantaloupe/ \
