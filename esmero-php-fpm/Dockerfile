@@ -1,5 +1,6 @@
-# from https://www.drupal.org/docs/9/system-requirements/drupal-9-php-requirements
-FROM php:8.1.10-fpm-alpine3.15
+# from https://www.drupal.org/node/3264830
+
+FROM php:8.1-fpm-alpine3.18
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -36,7 +37,7 @@ RUN set -eux; \
                 # zlib \
 		libzip-dev \
 		postgresql-dev \
-		php8-dev \
+		php81-dev \
 		# Equivalent of build essentials
 		alpine-sdk \
         pcre-dev \
@@ -105,7 +106,7 @@ RUN { \
 		echo 'max_execution_time = 300'; \
 		echo 'log_errors = On'; \
 		echo 'error_log = /proc/self/fd/2'; \
-	} > /usr/local/etc/php/conf.d/archipelagod9-recommended.ini
+	} > /usr/local/etc/php/conf.d/archipelagod10-recommended.ini
 
 RUN { \
 		echo 'php_admin_value[error_log] = /proc/self/fd/2'; \
@@ -258,9 +259,9 @@ RUN wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/late
 RUN chmod +x drush.phar && mv drush.phar drush
 
 # Install Fido 
-RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.4.1.zip && unzip v1.4.1.zip \
-		&& ln -s /usr/bin/python3 /usr/bin/python && pip install wheel
-RUN cd /usr/src/fido-1.4.1 && ./setup.py install && yes | fido-update-signatures
+RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
+		&& pip install wheel
+RUN cd /usr/src/fido-1.6.1 && ./setup.py install
 
 # Install WACZ
 RUN set -eux; \
@@ -274,14 +275,16 @@ RUN set -eux; \
                  && \
 		 git clone https://github.com/webrecorder/py-wacz /usr/local/src/wacz && \
                  cd /usr/local/src/wacz/ && git checkout main && \
-                 pip3 install -r requirements.txt && chmod 755 setup.py && ./setup.py install
+                 pip3 install --upgrade setuptools && \
+                 pip3 install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
         apk update && apk add --no-cache --virtual .build-deps-imagemagick \
            openjpeg-dev \
+           openjpeg-tools \
            chrpath \
-           fontconfig-dev \ 
+           fontconfig-dev \
            freetype-dev \
            ghostscript-dev \
            lcms2-dev \
@@ -299,11 +302,11 @@ RUN set -eux; \
            libraw-dev \
            make \
            openexr-dev \
-           libwmf-dev \ 
+           libwmf-dev \
            libltdl \
            graphviz-dev \
            bzip2-dev \
-           pango-dev \ 
+           pango-dev \
            libzip-dev \
            alpine-sdk \
            linux-headers \
@@ -318,16 +321,17 @@ RUN set -eux; \
             --enable-static \
             --disable-openmp \
             --with-threads \
-            --with-x \               
-            --with-tiff \            
-            --with-png \      
-            --with-webp \    
-           --with-gslib \     
-           --with-gs-font-dir=/usr/share/fonts/Type1 \       
-           --with-heic \          
-           --with-modules \         
-           --with-xml \        
-           --with-perl \     
+            --with-openjp2 \
+            --with-x \
+            --with-tiff \
+            --with-png \
+            --with-webp \
+           --with-gslib \
+           --with-gs-font-dir=/usr/share/fonts/Type1 \
+           --with-heic \
+           --with-modules \
+           --with-xml \
+           --with-perl \
            --with-perl-options="PREFIX=/usr INSTALLDIRS=vendor" \
            && make && make install; \
            apk del .build-deps-imagemagick;
