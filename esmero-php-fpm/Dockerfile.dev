@@ -1,8 +1,7 @@
 # build with:
-# sudo docker build -f Dockerfile.dev -t esmero/php-8.1.10-fpm:1.1.0-dev-multiarch . --no-cache
-# from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
+# sudo docker build -f Dockerfile.dev -t esmero/php-8.1-fpm:1.2.0-dev-multiarch . --no-cache
 
-FROM esmero/php-8.1.10-fpm:1.1.0-multiarch
+FROM esmero/php-8.1-fpm:1.2.0-multiarch
 
 # install the extensions we need for xdebug install
 RUN set -eux; \
@@ -11,7 +10,7 @@ RUN set -eux; \
         g++ \
         make \
 	; \
-	pecl install xdebug-3.1.5; \
+	pecl install xdebug-3.2.2; \
     apk del --no-cache .build-deps
 
 RUN { \
