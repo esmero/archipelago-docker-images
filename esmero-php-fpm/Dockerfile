@@ -254,9 +254,9 @@ RUN cd /usr/src && curl -sS http://getcomposer.org/installer | php
 RUN cd /usr/src && mv composer.phar /usr/bin/composer && composer self-update && composer self-update --2
 
 WORKDIR /usr/bin/
-# Installation of drush launcher / Drush will be installed via composer later
-RUN wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/latest/download/drush.phar
-RUN chmod +x drush.phar && mv drush.phar drush
+# Installation of a custom drush symlink/wrapper, drush launcher is deprecate/archived and won't work with drush 12 / Drush will be installed via composer later
+RUN wget -O drush.sh https://raw.githubusercontent.com/esmero/archipelago-docker-images/1.2.0/esmero-php-fpm/tools/drush.sh
+RUN chmod +x drush.sh && mv drush.sh drush
 
 # Install Fido 
 RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
