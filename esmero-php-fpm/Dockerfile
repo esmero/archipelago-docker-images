@@ -143,6 +143,7 @@ RUN apk -U add --no-cache \
         xpdf \
         freetype \
         icu-libs \
+		tesseract-ocr-data-eng \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
         tesseract-ocr-data-deu \
