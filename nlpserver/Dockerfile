@@ -12,14 +12,14 @@ RUN apt-get update && \
     apt-get install -y curl unzip supervisor
 
 WORKDIR /usr/src
-RUN curl -L "https://github.com/esmero/nlpserver-fasttext/archive/refs/tags/v1.0.3-ML-alpha.zip" -O
-RUN unzip "v1.0.3-ML-alpha.zip"
-RUN rm "v1.0.3-ML-alpha.zip" && mv nlpserver-fasttext-1.0.3-ML-alpha nlpserver
+RUN curl -L "https://github.com/esmero/nlpserver-fasttext/archive/refs/tags/v1.0.3-ML-alpha2.zip" -O
+RUN unzip "v1.0.3-ML-alpha2.zip"
+RUN rm "v1.0.3-ML-alpha2.zip" && mv nlpserver-fasttext-1.0.3-ML-alpha2 nlpserver
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
     apt-get install build-essential git software-properties-common -y && rm -rf /var/lib/apt/lists/*
-RUN apt-get update &&  apt-get -y install -y python-dev-is-python3 python3-numpy libhdf5-dev libevent-dev libicu-dev && \
+RUN apt-get update &&  apt-get -y install -y python-dev-is-python3 python3-numpy libhdf5-dev libgl1-mesa-glx libevent-dev libicu-dev && \
     apt-get -y install -y python3-pip && rm -rf /var/lib/apt/lists/* 
 # We can't use requirements.txt because of custom ARM64 pycld2
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 setuptools newspaper3k
