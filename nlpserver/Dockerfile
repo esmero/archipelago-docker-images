@@ -9,12 +9,10 @@ ARG TARGETPLATFORM
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y curl unzip supervisor
+    apt-get install -y curl unzip supervisor git
 
 WORKDIR /usr/src
-RUN curl -L "https://github.com/esmero/nlpserver-fasttext/archive/refs/tags/v1.0.3-ML-alpha3.zip" -O
-RUN unzip "v1.0.3-ML-alpha3.zip"
-RUN rm "v1.0.3-ML-alpha3.zip" && mv nlpserver-fasttext-1.0.3-ML-alpha3 nlpserver
+RUN git clone https://github.com/esmero/nlpserver-fasttext nlpserver && cd nlpserver && git checkout ML && cd ..
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
