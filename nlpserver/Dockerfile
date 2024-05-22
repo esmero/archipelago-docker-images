@@ -12,9 +12,9 @@ RUN apt-get update && \
     apt-get install -y curl unzip supervisor
 
 WORKDIR /usr/src
-RUN curl -L "https://github.com/esmero/nlpserver-fasttext/archive/refs/tags/v1.0.3-ML-alpha2.zip" -O
-RUN unzip "v1.0.3-ML-alpha2.zip"
-RUN rm "v1.0.3-ML-alpha2.zip" && mv nlpserver-fasttext-1.0.3-ML-alpha2 nlpserver
+RUN curl -L "https://github.com/esmero/nlpserver-fasttext/archive/refs/tags/v1.0.3-ML-alpha3.zip" -O
+RUN unzip "v1.0.3-ML-alpha3.zip"
+RUN rm "v1.0.3-ML-alpha3.zip" && mv nlpserver-fasttext-1.0.3-ML-alpha3 nlpserver
 WORKDIR /usr/src/nlpserver
 
 RUN apt-get -y install pkg-config && \
