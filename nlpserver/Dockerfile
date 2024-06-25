@@ -52,10 +52,11 @@ RUN python3 -m spacy download en && \
 # fasttext Language Detection Model & ML Models
 RUN curl -L "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin" -O
 RUN mkdir -p models/yolo/ && curl -L -o models/yolo/yolov8m.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt
-RUN curl -L -o models/yolo/yolov8l-oiv7.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt
-RUN mkdir -p models/mobilenet/ && curl -L -o models/mobilenet/mobilenet_v3_large.tflite https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_large/float32/1/mobilenet_v3_large.tflite
+#RUN curl -L -o models/yolo/yolov8l-oiv7.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt
+RUN mkdir -p models/mobilenet/ && curl -L -o models/mobilenet/mobilenet_v3_small.tflite https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/1/mobilenet_v3_small.tflite
 RUN mkdir -p models/efficientdet/ && curl -L -o models/efficientdet/efficientdet_lite2.tflite https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite2/float32/latest/efficientdet_lite2.tflite
 RUN curl -L -o models/mobilenet/ssd_mobilenet_v2.tflite https://storage.googleapis.com/mediapipe-models/object_detector/ssd_mobilenet_v2/float32/latest/ssd_mobilenet_v2.tflite
+RUN mkdir -p models/insightfacet/models/bufallo_l && curl -L -o models/insightfacet/models/bufallo_l/buffalo_l.zip https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip && unzip models/insightfacet/models/bufallo_l/buffalo_l.zip -d models/insightfacet/models/bufallo_l && rm models/insightfacet/models/bufallo_l/buffalo_l.zip
 # Supervisor
 COPY nlpserver.conf /etc/supervisor/conf.d
 COPY entrypoint.sh /usr/local/bin/
