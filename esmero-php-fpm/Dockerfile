@@ -1,6 +1,6 @@
 # from https://www.drupal.org/node/3264830
 
-FROM php:8.1-fpm-alpine3.18
+FROM php:8.3.8-fpm-alpine
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -33,11 +33,12 @@ RUN set -eux; \
 		libxslt-dev \
 		freetype-dev \
 		libjpeg-turbo-dev \
+		ffmpeg \
 		libpng-dev \
                 # zlib \
 		libzip-dev \
 		postgresql-dev \
-		php81-dev \
+		php83-dev \
 		# Equivalent of build essentials
 		alpine-sdk \
         pcre-dev \
@@ -76,10 +77,15 @@ RUN set -eux; \
 			| sort -u \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
-	pecl install imagick; \
-        pecl install apcu; \
-        pecl install redis; \
-	\
+	mkdir -p /usr/src/php/ext/imagick; \
+	    # Locking on specific commit hash to provide consistent results, at the moment of writing this is the HEAD of master
+	    curl -fsSL https://github.com/Imagick/imagick/archive/28f27044e435a2b203e32675e942eb8de620ee58.tar.gz | tar xvz -C "/usr/src/php/ext/imagick" --strip 1; \
+	    docker-php-ext-install imagick; \
+	# See https://github.com/Imagick/imagick/issues/640. Issue with PHP 8.3 so does not work until an official fix is tagged
+	mkdir -p /usr/src/php/ext/apcu && curl -fsSL https://pecl.php.net/get/apcu | tar xvz -C "/usr/src/php/ext/apcu" --strip 1; \
+	    docker-php-ext-install apcu; \
+	mkdir -p /usr/src/php/ext/redis && curl -fsSL https://pecl.php.net/get/redis | tar xvz -C "/usr/src/php/ext/redis" --strip 1; \
+	    docker-php-ext-install redis; \	
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
 	docker-php-ext-enable imagick; \
         docker-php-ext-enable apcu; \
@@ -246,8 +252,8 @@ apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      apk del .build-deps-pdfalto;
     
 
-RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+# RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+# ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 WORKDIR /usr/src/
 # Installation of Composer
