@@ -265,25 +265,33 @@ WORKDIR /usr/bin/
 RUN wget -O drush.sh https://raw.githubusercontent.com/esmero/archipelago-docker-images/1.2.0/esmero-php-fpm/tools/drush.sh
 RUN chmod +x drush.sh && mv drush.sh drush
 
+
 # Install Fido 
-RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
-		&& pip install wheel
-RUN cd /usr/src/fido-1.6.1 && ./setup.py install
+#RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
+#		&& pip3 install wheel 
+#RUN cd /usr/src/fido-1.6.1 && ./setup.py install
 
 # Install WACZ
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
-                 gcc \
-		 python3-dev \
-		 py3-pip \
-                 linux-headers \
-                 musl-dev \
-                 && \
-		 git clone https://github.com/webrecorder/py-wacz /usr/local/src/wacz && \
-                 cd /usr/local/src/wacz/ && git checkout main && \
-                 pip3 install --upgrade setuptools && \
-                 pip3 install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
+         gcc \
+         python3-dev \
+         py3-pip \
+         py3-wheel \
+         py3-setuptools\
+         linux-headers \
+         musl-dev \
+         && \
+         wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
+         unzip v1.6.1.zip -d /usr/src/ && \
+         cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
+         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout main && \
+		 python3 -m venv .venv && \
+		 source .venv/bin/activate && \
+		 python3 -m pip install setuptools && \
+         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
@@ -344,7 +352,8 @@ RUN set -eux; \
            apk del .build-deps-imagemagick;
 
 #Clean up sources, we need to keep drush one
-RUN rm -rf /usr/local/src/wacz
+RUN rm -rf /usr/src/wacz
+RUN rm -rf /usr/src/fido-1.6.1
 RUN rm -rf /usr/local/src/ImageMagick-7.1.0-31
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
