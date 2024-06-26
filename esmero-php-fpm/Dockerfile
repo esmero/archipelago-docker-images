@@ -272,6 +272,7 @@ RUN chmod +x drush.sh && mv drush.sh drush
 #RUN cd /usr/src/fido-1.6.1 && ./setup.py install
 
 # Install WACZ
+WORKDIR /usr/src/
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
@@ -286,12 +287,16 @@ RUN set -eux; \
          wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
          unzip v1.6.1.zip -d /usr/src/ && \
          cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
-         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
-         cd /usr/src/wacz/ && git checkout main && \
+		 cd /usr/src &&\
 		 python3 -m venv .venv && \
 		 source .venv/bin/activate && \
+		 pwd && \
 		 python3 -m pip install setuptools && \
-         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
+         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout main && \
+         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install && \
+		 cp /usr/src/.venv/bin/wacz /usr/bin/wacz && \
+		 deactivate;
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
