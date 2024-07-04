@@ -53,6 +53,7 @@ RUN python3 -m pip install --no-cache-dir --default-timeout=100 git+https://gith
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 "tensorflow==2.16.2" "keras==3.4.1" "sentence-transformers==2.7.0" "insightface==0.7.3" "mediapipe==0.10.14" "ultralytics==8.2.19"
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 torch
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 pillow pandas scikit-learn 
+RUN pip3 uninstall -y tensorflow && pip3 install "tensorflow==2.16.2"
 
 # fasttext Language Detection Model & ML Models
 RUN curl -L "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin" -O
