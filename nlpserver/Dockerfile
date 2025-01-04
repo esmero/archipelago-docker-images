@@ -29,8 +29,7 @@ RUN python3 -m pip install --no-cache-dir --default-timeout=100 gensim opencv-py
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 "pyicu==2.13.1" Flask morfessor langid BeautifulSoup4 afinn textblob
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 onnxruntime
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 readability-lxml
-
-RUN python3 -m pip install --no-cache-dir --default-timeout=100 "numpy==1.26.4" "tensorflow==2.16.2" "keras==3.4.1" spacy
+RUN python3 -m pip install --no-cache-dir --default-timeout=100 "numpy==1.26.4" "tensorflow==2.17.0" "keras==3.3.3" spacy
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 polyglot
 # English, spanish and Italian
 # TODO add this as built time arguments
@@ -50,15 +49,11 @@ RUN python3 -m spacy download en && \
     python3 -m spacy download it 
 
 RUN python3 -m pip install --no-cache-dir --default-timeout=100 git+https://github.com/facebookresearch/fastText.git 
-RUN python3 -m pip install --no-cache-dir --default-timeout=100 "tensorflow==2.16.2" "keras==3.4.1" "sentence-transformers==2.7.0" "insightface==0.7.3" "mediapipe==0.10.14" "ultralytics==8.2.19"
-RUN python3 -m pip install --no-cache-dir --default-timeout=100 torch
-RUN python3 -m pip install --no-cache-dir --default-timeout=100 pillow pandas scikit-learn 
-RUN pip3 uninstall -y tensorflow && pip3 install "tensorflow==2.16.2"
+RUN python3 -m pip install --no-cache-dir --default-timeout=100 "tensorflow==2.17.0" "keras==3.3.3" "sentence-transformers==2.7.0" "insightface==0.7.3" "mediapipe==0.10.14" "ultralytics==8.2.19" pillow pandas scikit-learn torch
 
 # fasttext Language Detection Model & ML Models
 RUN curl -L "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin" -O
 RUN mkdir -p models/yolo/ && curl -L -o models/yolo/yolov8m.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt
-#RUN curl -L -o models/yolo/yolov8l-oiv7.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt
 RUN mkdir -p models/mobilenet/ && curl -L -o models/mobilenet/mobilenet_v3_small.tflite https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/1/mobilenet_v3_small.tflite
 RUN mkdir -p models/efficientdet/ && curl -L -o models/efficientdet/efficientdet_lite2.tflite https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite2/float32/latest/efficientdet_lite2.tflite
 RUN curl -L -o models/mobilenet/ssd_mobilenet_v2.tflite https://storage.googleapis.com/mediapipe-models/object_detector/ssd_mobilenet_v2/float32/latest/ssd_mobilenet_v2.tflite
