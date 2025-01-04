@@ -1,0 +1,176 @@
+# JRE fails to load fonts if there are no standard fonts in the image; This breaks Cantaloups /admin endpoint
+# see https://github.com/docker-library/openjdk/issues/73#issuecomment-207816707
+# Also make sure you setup temp_pathname in cantaloupe.properties to a safe/stable place since Classes are cached there too.
+
+
+FROM debian:bookworm-slim
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata curl ca-certificates fontconfig locales \
+    && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+    && locale-gen en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_VERSION jdk-23.0.1
+# From https://jdk.java.net/23/
+RUN set -eux; \
+    ARCH="$(dpkg --print-architecture)"; \
+    case "${ARCH}" in \
+       aarch64|arm64) \
+         ESUM='94586630f70f1e87d90c252a6a2a202655399d1358c9b226834179e8bcf800e9'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-aarch64_bin.tar.gz' \
+         ;; \
+      
+       amd64|x86_64) \
+         ESUM='dc9b6adc1550afd95e30e131c1c38044925cb656923f92f6dbf0fbd8c1405629'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-x64_bin.tar.gz'; \
+         ;; \
+       *) \
+         echo "Unsupported arch: ${ARCH}"; \
+         exit 1; \
+         ;; \
+    esac; \
+    curl -LfsSo /tmp/openjdk.tar.gz ${BINARY_URL}; \
+    echo "${ESUM} */tmp/openjdk.tar.gz" | sha256sum -c -; \
+    mkdir -p /opt/java/openjdk; \
+    cd /opt/java/openjdk; \
+    tar -xf /tmp/openjdk.tar.gz --strip-components=1; \
+    rm -rf /tmp/openjdk.tar.gz;
+
+ENV JAVA_HOME=/opt/java/openjdk \
+    PATH="/opt/java/openjdk/bin:$PATH"
+
+# Cantaloupe docker starter script
+# $ sudo docker build -t esmero-cantaloupe .
+# $ sudo docker run -d --rm -p 8183:8182 -v ./cantaloupeconfig:/etc/cantaloupe --name esmero-cantaloupe esmero-cantaloupe
+
+# Publish new tag -- PRIVATE
+# $ docker login (user diegopino) use your own name folks!
+# $ docker build . -t esmero/cantaloupe-s3:6.0.2
+# $ docker push esmero/cantaloupe-s3:6.0.2
+
+ENV CANTALOUPE_VERSION 6.0.0
+
+EXPOSE 8182
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		ffmpeg \
+		wget \
+                nasm \
+  	        libopenjp2-tools \
+                libopenjp2-7-dev \
+                liblcms2-dev \
+                libpng-dev \
+                libzstd-dev \
+                libtiff-dev \
+                libjpeg-dev \
+                libcairo2-dev libpango1.0-dev libgif-dev build-essential \
+                zlib1g-dev \
+                libwebp-dev \
+                libimage-exiftool-perl \
+                ghostscript \
+                libgs-dev \
+                pkg-config \
+                git \
+                libexif-dev \
+                libc6 \
+                grokj2k-tools \
+                libgrokj2k1 \
+                libgrokj2k1-dev \
+                lzip \
+                zlib1g zlib1g-dev libxml2 libxml2-dev libltdl-dev libpng-dev libtool libopenjp2-7 libtiff-dev cmake automake autoconf make gcc g++ libimage-exiftool-perl  libfreetype6-dev \
+                && rm -rf /var/lib/apt/lists/*
+
+# Install TurboJpegProcessor. Has issues with Grayscale JP2. BE aware
+WORKDIR /tmp
+RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
+  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
+  && cd libjpeg-turbo-2.0.1 \
+  && mkdir BUILD && cd BUILD \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DWITH_JAVA=1 \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DENABLE_STATIC=FALSE       \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
+      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+      ..  \
+  && make \
+  && make install
+
+# Install GrokIMageCompression
+
+WORKDIR /tmp
+
+
+#RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+
+
+#RUN curl -OL https://github.com/GrokImageCompression/grok/archive/refs/tags/v14.1.0.tar.gz \
+#  && tar xzvf v14.1.0.tar.gz \
+#  && cd grok-14.1.0 \
+#  && mkdir BUILD && cd BUILD \
+#  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+#      -DCMAKE_BUILD_TYPE=Release     \
+#      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/14.1.0 \
+#      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+#      ..  \
+#  && make \
+#  && make install
+
+WORKDIR /tmp
+
+RUN curl -OL https://github.com/jasper-software/jasper/archive/version-2.0.32/jasper-2.0.32.tar.gz \
+  && tar xzvf jasper-2.0.32.tar.gz \
+  && cd  jasper-version-2.0.32 \
+  && mkdir BUILD && cd BUILD \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DCMAKE_SKIP_INSTALL_RPATH=YES \
+      -DJAS_ENABLE_DOC=NO            \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/jasper-2.0.32 \
+      ..  \
+  && make \
+  && make test \
+  && make install
+
+# Cantaloupe
+WORKDIR /tmp
+
+RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
+
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
+ && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
+ && mvn clean package -DskipTests \ 
+ && mkdir /usr/local/cantaloupe/ \
+ && mkdir -p /etc/cantaloupe
+
+RUN cp /usr/local/cantaloupe-build/target/cantaloupe-6.0-SNAPSHOT.jar   /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar
+RUN rm -rf /usr/local/cantaloupe-build/
+
+ARG user=cantaloupe
+ARG home=/home/$user
+RUN adduser -u 8183 --home $home $user
+RUN chown -R $user $home
+
+# upcoming docker releases: use --chown=cantaloupe
+COPY cantaloupe.properties /etc/cantaloupe/cantaloupe.properties 
+
+RUN mkdir -p /var/log/cantaloupe \
+ && mkdir -p /var/cache/cantaloupe \
+ && chown -R cantaloupe /var/log/cantaloupe \
+ && chown -R cantaloupe /var/cache/cantaloupe \
+ && chown -R cantaloupe /etc/cantaloupe
+
+ARG XMX=2g
+ARG XMS=256m
+
+ENV XMS=${XMS}
+ENV XMX=${XMX}
+
+USER $user
+
+VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
+
