@@ -3,7 +3,7 @@
 # Also make sure you setup temp_pathname in cantaloupe.properties to a safe/stable place since Classes are cached there too.
 
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
@@ -13,30 +13,19 @@ RUN apt-get update \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_VERSION jdk-15.0.2+7
-
+ENV JAVA_VERSION jdk-23.0.1
+# From https://jdk.java.net/23/
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
     case "${ARCH}" in \
        aarch64|arm64) \
-         ESUM='6e8b6b037148cf20a284b5b257ec7bfdf9cc31ccc87778d0dfd95a2fddf228d4'; \
-         BINARY_URL='https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_aarch64_linux_hotspot_15.0.2_7.tar.gz'; \
+         ESUM='94586630f70f1e87d90c252a6a2a202655399d1358c9b226834179e8bcf800e9'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-aarch64_bin.tar.gz' \
          ;; \
-       armhf|armv7l) \
-         ESUM='ff39c0380224e419d940382c4d651cb1e6297a794854e0cc459c1fd4973b3368'; \
-         BINARY_URL='https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_arm_linux_hotspot_15.0.2_7.tar.gz'; \
-         ;; \
-       ppc64el|ppc64le) \
-         ESUM='486f2aad94c5580c0b27c9007beebadfccd4677c0bd9565a77ca5c34af5319f9'; \
-         BINARY_URL='https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_ppc64le_linux_hotspot_15.0.2_7.tar.gz'; \
-         ;; \
-       s390x) \
-         ESUM='7dc35a8a4ba1ccf6cfe96fcf26e09ed936f1802ca668ca6bf708e2392c35ab6a'; \
-         BINARY_URL='https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_s390x_linux_hotspot_15.0.2_7.tar.gz'; \
-         ;; \
+      
        amd64|x86_64) \
-         ESUM='94f20ca8ea97773571492e622563883b8869438a015d02df6028180dd9acc24d'; \
-         BINARY_URL='https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_x64_linux_hotspot_15.0.2_7.tar.gz'; \
+         ESUM='dc9b6adc1550afd95e30e131c1c38044925cb656923f92f6dbf0fbd8c1405629'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-x64_bin.tar.gz'; \
          ;; \
        *) \
          echo "Unsupported arch: ${ARCH}"; \
@@ -54,18 +43,13 @@ ENV JAVA_HOME=/opt/java/openjdk \
     PATH="/opt/java/openjdk/bin:$PATH"
 
 # Cantaloupe docker starter script
-# https://github.com/cantaloupe-project/cantaloupe/releases/tag/v4.1.7
-# Build and run: 
 # $ sudo docker build -t esmero-cantaloupe .
 # $ sudo docker run -d --rm -p 8183:8182 -v ./cantaloupeconfig:/etc/cantaloupe --name esmero-cantaloupe esmero-cantaloupe
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:6.0.0
-# $ docker push esmero/cantaloupe-s3:6.0.0
-# If moving from Archipelago RC3, see upgrading from 4.1 to 5.x https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#41x--50
-# and https://github.com/cantaloupe-project/cantaloupe/blob/develop/UPGRADING.md#50--60
-
+# $ docker build . -t esmero/cantaloupe-s3:6.0.2
+# $ docker push esmero/cantaloupe-s3:6.0.2
 
 ENV CANTALOUPE_VERSION 6.0.0
 
@@ -92,25 +76,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 git \
                 libexif-dev \
                 libc6 \
+                grokj2k-tools \
+                libgrokj2k1 \
+                libgrokj2k1-dev \
                 lzip \
                 zlib1g zlib1g-dev libxml2 libxml2-dev libltdl-dev libpng-dev libtool libopenjp2-7 libtiff-dev cmake automake autoconf make gcc g++ libimage-exiftool-perl  libfreetype6-dev \
                 && rm -rf /var/lib/apt/lists/*
 
-# Install TurboJpegProcessor
-WORKDIR /tmp
-RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
-  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
-  && cd libjpeg-turbo-2.0.1 \
-  && mkdir BUILD && cd BUILD \
-  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
-      -DWITH_JAVA=1 \
-      -DCMAKE_BUILD_TYPE=Release     \
-      -DENABLE_STATIC=FALSE       \
-      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
-      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
-      ..  \
-  && make \
-  && make install
+# Don't Install TurboJpegProcessor
+#WORKDIR /tmp
+#RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
+#  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
+#  && cd libjpeg-turbo-2.0.1 \
+#  && mkdir BUILD && cd BUILD \
+#  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+#      -DWITH_JAVA=1 \
+#      -DCMAKE_BUILD_TYPE=Release     \
+#      -DENABLE_STATIC=FALSE       \
+#      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
+#      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+#      ..  \
+#  && make \
+#  && make install
 
 # Install GrokIMageCompression
 
@@ -120,17 +107,17 @@ WORKDIR /tmp
 #RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
 
 
-RUN curl -OL https://github.com/GrokImageCompression/grok/archive/refs/tags/v9.7.6.tar.gz \
-  && tar xzvf v9.7.6.tar.gz \
-  && cd grok-9.7.6 \
-  && mkdir BUILD && cd BUILD \
-  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
-      -DCMAKE_BUILD_TYPE=Release     \
-      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/grok-9.7.6 \
-      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
-      ..  \
-  && make \
-  && make install
+#RUN curl -OL https://github.com/GrokImageCompression/grok/archive/refs/tags/v14.1.0.tar.gz \
+#  && tar xzvf v14.1.0.tar.gz \
+#  && cd grok-14.1.0 \
+#  && mkdir BUILD && cd BUILD \
+#  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+#      -DCMAKE_BUILD_TYPE=Release     \
+#      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/14.1.0 \
+#      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+#      ..  \
+#  && make \
+#  && make install
 
 WORKDIR /tmp
 
@@ -153,7 +140,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/esmero/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-593 \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
  && mvn clean package -DskipTests \ 
  && mkdir /usr/local/cantaloupe/ \
