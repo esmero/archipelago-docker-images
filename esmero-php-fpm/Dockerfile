@@ -1,6 +1,6 @@
 # from https://www.drupal.org/node/3264830
 
-FROM php:8.1-fpm-alpine3.18
+FROM php:8.3.8-fpm-alpine
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -33,11 +33,12 @@ RUN set -eux; \
 		libxslt-dev \
 		freetype-dev \
 		libjpeg-turbo-dev \
+		ffmpeg \
 		libpng-dev \
                 # zlib \
 		libzip-dev \
 		postgresql-dev \
-		php81-dev \
+		php83-dev \
 		# Equivalent of build essentials
 		alpine-sdk \
         pcre-dev \
@@ -76,10 +77,15 @@ RUN set -eux; \
 			| sort -u \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
-	pecl install imagick; \
-        pecl install apcu; \
-        pecl install redis; \
-	\
+	mkdir -p /usr/src/php/ext/imagick; \
+	    # Locking on specific commit hash to provide consistent results, at the moment of writing this is the HEAD of master
+	    curl -fsSL https://github.com/Imagick/imagick/archive/28f27044e435a2b203e32675e942eb8de620ee58.tar.gz | tar xvz -C "/usr/src/php/ext/imagick" --strip 1; \
+	    docker-php-ext-install imagick; \
+	# See https://github.com/Imagick/imagick/issues/640. Issue with PHP 8.3 so does not work until an official fix is tagged
+	mkdir -p /usr/src/php/ext/apcu && curl -fsSL https://pecl.php.net/get/apcu | tar xvz -C "/usr/src/php/ext/apcu" --strip 1; \
+	    docker-php-ext-install apcu; \
+	mkdir -p /usr/src/php/ext/redis && curl -fsSL https://pecl.php.net/get/redis | tar xvz -C "/usr/src/php/ext/redis" --strip 1; \
+	    docker-php-ext-install redis; \	
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
 	docker-php-ext-enable imagick; \
         docker-php-ext-enable apcu; \
@@ -246,8 +252,8 @@ apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      apk del .build-deps-pdfalto;
     
 
-RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+# RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+# ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 WORKDIR /usr/src/
 # Installation of Composer
@@ -259,25 +265,38 @@ WORKDIR /usr/bin/
 RUN wget -O drush.sh https://raw.githubusercontent.com/esmero/archipelago-docker-images/1.2.0/esmero-php-fpm/tools/drush.sh
 RUN chmod +x drush.sh && mv drush.sh drush
 
+
 # Install Fido 
-RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
-		&& pip install wheel
-RUN cd /usr/src/fido-1.6.1 && ./setup.py install
+#RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
+#		&& pip3 install wheel 
+#RUN cd /usr/src/fido-1.6.1 && ./setup.py install
 
 # Install WACZ
+WORKDIR /usr/src/
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
-                 gcc \
-		 python3-dev \
-		 py3-pip \
-                 linux-headers \
-                 musl-dev \
-                 && \
-		 git clone https://github.com/webrecorder/py-wacz /usr/local/src/wacz && \
-                 cd /usr/local/src/wacz/ && git checkout main && \
-                 pip3 install --upgrade setuptools && \
-                 pip3 install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
+         gcc \
+         python3-dev \
+         py3-pip \
+         py3-wheel \
+         py3-setuptools\
+         linux-headers \
+         musl-dev \
+         && \
+         wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
+         unzip v1.6.1.zip -d /usr/src/ && \
+         cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
+		 cd /usr/src &&\
+		 python3 -m venv .venv && \
+		 source .venv/bin/activate && \
+		 pwd && \
+		 python3 -m pip install setuptools && \
+         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout main && \
+         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install && \
+		 cp /usr/src/.venv/bin/wacz /usr/bin/wacz && \
+		 deactivate;
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
@@ -338,7 +357,8 @@ RUN set -eux; \
            apk del .build-deps-imagemagick;
 
 #Clean up sources, we need to keep drush one
-RUN rm -rf /usr/local/src/wacz
+RUN rm -rf /usr/src/wacz
+RUN rm -rf /usr/src/fido-1.6.1
 RUN rm -rf /usr/local/src/ImageMagick-7.1.0-31
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
