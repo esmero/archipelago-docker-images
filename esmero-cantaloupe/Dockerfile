@@ -13,7 +13,7 @@ RUN apt-get update \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_VERSION jdk-23.0.1
+ENV JAVA_VERSION=jdk-23.0.1
 # From https://jdk.java.net/23/
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
@@ -51,7 +51,7 @@ ENV JAVA_HOME=/opt/java/openjdk \
 # $ docker build . -t esmero/cantaloupe-s3:6.0.2
 # $ docker push esmero/cantaloupe-s3:6.0.2
 
-ENV CANTALOUPE_VERSION 6.0.0
+ENV CANTALOUPE_VERSION=6.0.0
 
 EXPOSE 8182
 
@@ -140,7 +140,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-722 \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
  && mvn clean package -DskipTests \ 
  && mkdir /usr/local/cantaloupe/ \
@@ -165,12 +165,13 @@ RUN mkdir -p /var/log/cantaloupe \
 
 ARG XMX=2g
 ARG XMS=256m
+ARG JAVA_OPS=-XX:+UseZGC
+
 
 ENV XMS=${XMS}
 ENV XMX=${XMX}
-
+ENV JAVA_OPS=${JAVA_OPS}
 USER $user
 
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
-
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} ${JAVA_OPS} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
