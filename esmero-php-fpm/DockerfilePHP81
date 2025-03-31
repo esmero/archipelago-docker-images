@@ -258,25 +258,32 @@ WORKDIR /usr/bin/
 RUN wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/latest/download/drush.phar
 RUN chmod +x drush.phar && mv drush.phar drush
 
-# Install Fido 
-RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
-		&& pip install wheel
-RUN cd /usr/src/fido-1.6.1 && ./setup.py install
-
-# Install WACZ
+#Install WACZ and Fido
+WORKDIR /usr/src/
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
-                 gcc \
-		 python3-dev \
-		 py3-pip \
-                 linux-headers \
-                 musl-dev \
-                 && \
-		 git clone https://github.com/webrecorder/py-wacz /usr/local/src/wacz && \
-                 cd /usr/local/src/wacz/ && git checkout main && \
-                 pip3 install --upgrade setuptools && \
-                 pip3 install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install
+         gcc \
+         python3-dev \
+         py3-pip \
+         py3-wheel \
+         py3-setuptools\
+         linux-headers \
+         musl-dev \
+         && \
+         wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
+         unzip v1.6.1.zip -d /usr/src/ && \
+         cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
+		 cd /usr/src &&\
+		 python3 -m venv .venv && \
+		 source .venv/bin/activate && \
+		 pwd && \
+		 python3 -m pip install setuptools && \
+         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout main && \
+         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install && \
+		 cp /usr/src/.venv/bin/wacz /usr/bin/wacz && \
+		 deactivate;
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
