@@ -142,6 +142,7 @@ RUN apk -U add --no-cache \
 		python3 \
         xpdf \
         freetype \
+	ffmpeg \
         icu-libs \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
