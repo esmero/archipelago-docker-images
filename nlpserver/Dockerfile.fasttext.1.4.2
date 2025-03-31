@@ -1,0 +1,11 @@
+# From https://hub.docker.com/_/python 
+# using slim buster because docs say alpine makes python building slower
+
+FROM esmero/esmero-nlp:fasttext-multiarch
+
+RUN apt-get update && \
+    apt-get upgrade -y
+
+# Fetch update nlpserver file with removed polyglot collection check.download
+RUN rm nlpserver.py && curl -L "https://raw.githubusercontent.com/esmero/nlpserver-fasttext/refs/heads/1.4.0/nlpserver.py" -O
+EXPOSE 6400
