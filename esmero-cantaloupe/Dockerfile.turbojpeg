@@ -13,7 +13,7 @@ RUN apt-get update \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_VERSION jdk-23.0.1
+ENV JAVA_VERSION=jdk-23.0.1
 # From https://jdk.java.net/23/
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
@@ -51,7 +51,7 @@ ENV JAVA_HOME=/opt/java/openjdk \
 # $ docker build . -t esmero/cantaloupe-s3:6.0.2
 # $ docker push esmero/cantaloupe-s3:6.0.2
 
-ENV CANTALOUPE_VERSION 6.0.0
+ENV CANTALOUPE_VERSION=6.0.0
 
 EXPOSE 8182
 
