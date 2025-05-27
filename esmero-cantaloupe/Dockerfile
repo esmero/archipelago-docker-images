@@ -48,8 +48,8 @@ ENV JAVA_HOME=/opt/java/openjdk \
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:6.0.2
-# $ docker push esmero/cantaloupe-s3:6.0.2
+# $ docker build . -t esmero/cantaloupe-s3:6.0.5
+# $ docker push esmero/cantaloupe-s3:6.0.5
 
 ENV CANTALOUPE_VERSION=6.0.0
 
@@ -140,7 +140,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-771 \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
  && mvn clean package -DskipTests \ 
  && mkdir /usr/local/cantaloupe/ \

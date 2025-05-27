@@ -1,6 +1,6 @@
 # from https://www.drupal.org/node/3264830
 
-FROM php:8.3.8-fpm-alpine
+FROM php:8.3.19-fpm-alpine
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -33,9 +33,8 @@ RUN set -eux; \
 		libxslt-dev \
 		freetype-dev \
 		libjpeg-turbo-dev \
-		ffmpeg \
 		libpng-dev \
-                # zlib \
+        # zlib \
 		libzip-dev \
 		postgresql-dev \
 		php83-dev \
@@ -77,15 +76,10 @@ RUN set -eux; \
 			| sort -u \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)"; \
-	mkdir -p /usr/src/php/ext/imagick; \
-	    # Locking on specific commit hash to provide consistent results, at the moment of writing this is the HEAD of master
-	    curl -fsSL https://github.com/Imagick/imagick/archive/28f27044e435a2b203e32675e942eb8de620ee58.tar.gz | tar xvz -C "/usr/src/php/ext/imagick" --strip 1; \
-	    docker-php-ext-install imagick; \
-	# See https://github.com/Imagick/imagick/issues/640. Issue with PHP 8.3 so does not work until an official fix is tagged
-	mkdir -p /usr/src/php/ext/apcu && curl -fsSL https://pecl.php.net/get/apcu | tar xvz -C "/usr/src/php/ext/apcu" --strip 1; \
-	    docker-php-ext-install apcu; \
-	mkdir -p /usr/src/php/ext/redis && curl -fsSL https://pecl.php.net/get/redis | tar xvz -C "/usr/src/php/ext/redis" --strip 1; \
-	    docker-php-ext-install redis; \	
+	pecl install imagick; \
+        pecl install apcu; \
+        pecl install redis; \
+	\
 	apk add --virtual .drupal-phpexts-rundeps $runDeps; \
 	docker-php-ext-enable imagick; \
         docker-php-ext-enable apcu; \
@@ -148,14 +142,15 @@ RUN apk -U add --no-cache \
 		python3 \
         xpdf \
         freetype \
+	    ffmpeg \
         icu-libs \
-		tesseract-ocr-data-eng \
 		tesseract-ocr-data-ita \
 		tesseract-ocr-data-spa \
         tesseract-ocr-data-deu \
         tesseract-ocr-data-tam \
         tesseract-ocr-data-por \
         tesseract-ocr-data-hin \
+        tesseract-ocr-data-eng \
         mediainfo \
 		exiftool \
 		py3-setuptools \
@@ -252,8 +247,8 @@ apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      apk del .build-deps-pdfalto;
     
 
-# RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
-# ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 WORKDIR /usr/src/
 # Installation of Composer
@@ -262,16 +257,10 @@ RUN cd /usr/src && mv composer.phar /usr/bin/composer && composer self-update &&
 
 WORKDIR /usr/bin/
 # Installation of a custom drush symlink/wrapper, drush launcher is deprecate/archived and won't work with drush 12 / Drush will be installed via composer later
-RUN wget -O drush.sh https://raw.githubusercontent.com/esmero/archipelago-docker-images/1.2.0/esmero-php-fpm/tools/drush.sh
+RUN wget -O drush.sh https://raw.githubusercontent.com/esmero/archipelago-docker-images/1.5.0/esmero-php-fpm/tools/drush.sh
 RUN chmod +x drush.sh && mv drush.sh drush
 
-
-# Install Fido 
-#RUN cd /usr/src && wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && unzip v1.6.1.zip \
-#		&& pip3 install wheel 
-#RUN cd /usr/src/fido-1.6.1 && ./setup.py install
-
-# Install WACZ
+#Install WACZ and Fido
 WORKDIR /usr/src/
 RUN set -eux; \
 \
@@ -332,8 +321,8 @@ RUN set -eux; \
            linux-headers \
            musl-dev \
            && cd /usr/local/src/ \
-           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.0-31.tar.gz \
-           && tar xzvf ImageMagick-7.1.0-31.tar.gz && rm ImageMagick-7.1.0-31.tar.gz && cd ImageMagick-7.1.0-31 && \
+           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.1-47.tar.gz \
+           && tar xzvf ImageMagick-7.1.1-47.tar.gz && rm ImageMagick-7.1.1-47.tar.gz && cd ImageMagick-7.1.1-47 && \
             ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --mandir=/usr/share/man \
@@ -359,7 +348,7 @@ RUN set -eux; \
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/src/wacz
 RUN rm -rf /usr/src/fido-1.6.1
-RUN rm -rf /usr/local/src/ImageMagick-7.1.0-31
+RUN rm -rf /usr/local/src/ImageMagick-7.1.1-47
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
