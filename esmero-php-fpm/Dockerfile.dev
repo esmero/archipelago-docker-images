@@ -13,7 +13,7 @@ RUN set -eux; \
     apk del --no-cache .build-deps
 
 RUN { \
-		echo 'zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20210902/xdebug.so'; \
+		echo 'zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20230831/xdebug.so'; \
 		echo 'xdebug.remote_handler=dbgp'; \
 		echo 'xdebug.client_port=9003'; \
 		echo 'xdebug.start_with_request=yes'; \
