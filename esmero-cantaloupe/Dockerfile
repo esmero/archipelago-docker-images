@@ -150,7 +150,7 @@ RUN cp /usr/local/cantaloupe-build/target/cantaloupe-6.0-SNAPSHOT.jar   /usr/loc
 RUN rm -rf /usr/local/cantaloupe-build/
 
 ARG user=cantaloupe
-ARG home=/home/$user
+ARG home=/home/cantaloupe
 RUN adduser -u 8183 --home $home $user
 RUN chown -R $user $home
 
@@ -165,7 +165,7 @@ RUN mkdir -p /var/log/cantaloupe \
 
 ARG XMX=2g
 ARG XMS=256m
-ARG JAVA_OPS=-XX:+UseZGC
+ARG JAVA_OPS=-XX:+UseG1GC
 
 
 ENV XMS=${XMS}
