@@ -48,8 +48,8 @@ ENV JAVA_HOME=/opt/java/openjdk \
 
 # Publish new tag -- PRIVATE
 # $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:6.0.5
-# $ docker push esmero/cantaloupe-s3:6.0.5
+# $ docker build . -t esmero/cantaloupe-s3:6.0.2
+# $ docker push esmero/cantaloupe-s3:6.0.2
 
 ENV CANTALOUPE_VERSION=6.0.0
 
@@ -83,21 +83,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 zlib1g zlib1g-dev libxml2 libxml2-dev libltdl-dev libpng-dev libtool libopenjp2-7 libtiff-dev cmake automake autoconf make gcc g++ libimage-exiftool-perl  libfreetype6-dev \
                 && rm -rf /var/lib/apt/lists/*
 
-# Don't Install TurboJpegProcessor
-#WORKDIR /tmp
-#RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
-#  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
-#  && cd libjpeg-turbo-2.0.1 \
-#  && mkdir BUILD && cd BUILD \
-#  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
-#      -DWITH_JAVA=1 \
-#      -DCMAKE_BUILD_TYPE=Release     \
-#      -DENABLE_STATIC=FALSE       \
-#      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
-#      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
-#      ..  \
-#  && make \
-#  && make install
+# Install TurboJpegProcessor. Has issues with Grayscale JP2. BE aware
+WORKDIR /tmp
+RUN curl -OL https://sourceforge.net/projects/libjpeg-turbo/files/2.0.1/libjpeg-turbo-2.0.1.tar.gz \
+  && tar xzvf libjpeg-turbo-2.0.1.tar.gz \
+  && cd libjpeg-turbo-2.0.1 \
+  && mkdir BUILD && cd BUILD \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DWITH_JAVA=1 \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DENABLE_STATIC=FALSE       \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-2.0.1 \
+      -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib  \
+      ..  \
+  && make \
+  && make install
 
 # Install GrokIMageCompression
 
@@ -140,7 +140,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-771 \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout develop \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
  && mvn clean package -DskipTests \ 
  && mkdir /usr/local/cantaloupe/ \
@@ -150,7 +150,7 @@ RUN cp /usr/local/cantaloupe-build/target/cantaloupe-6.0-SNAPSHOT.jar   /usr/loc
 RUN rm -rf /usr/local/cantaloupe-build/
 
 ARG user=cantaloupe
-ARG home=/home/cantaloupe
+ARG home=/home/$user
 RUN adduser -u 8183 --home $home $user
 RUN chown -R $user $home
 
@@ -165,13 +165,12 @@ RUN mkdir -p /var/log/cantaloupe \
 
 ARG XMX=2g
 ARG XMS=256m
-ARG JAVA_OPS=-XX:+UseG1GC
-
 
 ENV XMS=${XMS}
 ENV XMX=${XMX}
-ENV JAVA_OPS=${JAVA_OPS}
+
 USER $user
 
 VOLUME ["/var/log/cantaloupe", "/var/cache/cantaloupe"]
-CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} ${JAVA_OPS} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
+CMD ["sh", "-c", "java -Dcantaloupe.config=/etc/cantaloupe/cantaloupe.properties -Xms${XMS} -Xmx${XMX} -jar /usr/local/cantaloupe/cantaloupe-6.0-SNAPSHOT.jar"]
+

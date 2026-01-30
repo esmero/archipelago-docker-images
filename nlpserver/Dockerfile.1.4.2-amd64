@@ -1,0 +1,12 @@
+# From https://hub.docker.com/_/python 
+# using slim buster because docs say alpine makes python building slower
+
+FROM esmero/esmero-nlp:1.4.1-amd64
+
+RUN apt-get update && \
+    apt-get upgrade -y
+
+# Fetch update nlpserver file with removed polyglot collection check.download
+RUN rm nlpserver.py && curl -L "https://raw.githubusercontent.com/esmero/nlpserver-fasttext/4ebe3f2e590f315f91d6e3a8e5629338bf1e864b/nlpserver.py" -O
+RUN pip install transformers
+EXPOSE 6400
