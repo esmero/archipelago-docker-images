@@ -345,6 +345,8 @@ RUN chmod +x drush.sh && mv drush.sh drush
 
 #Install WACZ and Fido
 WORKDIR /usr/src/
+# This is a keeper. Fido needs it. No longer a default in this alpine
+RUN apk update && apk add py3-six
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
@@ -353,26 +355,30 @@ RUN set -eux; \
          py3-pip \
          py3-wheel \
          py3-setuptools\
+         py3-six \
          linux-headers \
          musl-dev \
          && \
-         wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
-         unzip v1.6.1.zip -d /usr/src/ && \
-         cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
-		 cd /usr/src &&\
 		 python3 -m venv .venv && \
 		 source .venv/bin/activate && \
+		 python -m pip install --upgrade pip setuptools wheel && \
+		 cd /usr/src &&\
 		 pwd && \
-		 python3 -m pip install setuptools && \
-         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
-         cd /usr/src/wacz/ && git checkout main && \
-         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install && \
+		 python3 -m pip install opf-fido &&\
+		 # Copy from virtual env to /usr/bin
+		 cp /usr/src/.venv/bin/fido /usr/bin/fido && \
+		 # Using my never ending clone of stuff that is not actively maintained?
+         git clone https://github.com/DiegoPino/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout py-3.12 && \
+         python3 -m pip install -r requirements.txt && chmod 755 setup.py && ./setup.py install && \
+         # Copy from virtual env to /usr/bin
 		 cp /usr/src/.venv/bin/wacz /usr/bin/wacz && \
 		 deactivate;
 
 # Build Image Magick with JP2 Support
 RUN set -eux; \
         apk update && apk add --no-cache --virtual .build-deps-imagemagick \
+           openjpeg \
            openjpeg-dev \
            openjpeg-tools \
            chrpath \
@@ -404,8 +410,8 @@ RUN set -eux; \
            linux-headers \
            musl-dev \
            && cd /usr/local/src/ \
-           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.1-47.tar.gz \
-           && tar xzvf ImageMagick-7.1.1-47.tar.gz && rm ImageMagick-7.1.1-47.tar.gz && cd ImageMagick-7.1.1-47 && \
+           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.2-13.tar.gz \
+           && tar xzvf ImageMagick-7.1.2-13.tar.gz && rm ImageMagick-7.1.1-47.tar.gz && cd ImageMagick-7.1.2-13 && \
             ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --mandir=/usr/share/man \
@@ -413,7 +419,7 @@ RUN set -eux; \
             --enable-static \
             --disable-openmp \
             --with-threads \
-            --with-openjp2 \
+            --with-openjp2=yes \
             --with-x \
             --with-tiff \
             --with-png \
@@ -437,8 +443,7 @@ RUN chmod +x /usr/bin/audiowaveform \
 
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/src/wacz
-RUN rm -rf /usr/src/fido-1.6.1
-RUN rm -rf /usr/local/src/ImageMagick-7.1.1-47
+RUN rm -rf /usr/local/src/ImageMagick-7.1.2-13
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
