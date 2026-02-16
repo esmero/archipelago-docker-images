@@ -378,7 +378,6 @@ RUN set -eux; \
 # Build Image Magick with JP2 Support
 RUN set -eux; \
         apk update && apk add --no-cache --virtual .build-deps-imagemagick \
-           openjpeg \
            openjpeg-dev \
            openjpeg-tools \
            chrpath \
@@ -411,7 +410,7 @@ RUN set -eux; \
            musl-dev \
            && cd /usr/local/src/ \
            && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.2-13.tar.gz \
-           && tar xzvf ImageMagick-7.1.2-13.tar.gz && rm ImageMagick-7.1.1-47.tar.gz && cd ImageMagick-7.1.2-13 && \
+           && tar xzvf ImageMagick-7.1.2-13.tar.gz && rm ImageMagick-7.1.2-13.tar.gz && cd ImageMagick-7.1.2-13 && \
             ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --mandir=/usr/share/man \
