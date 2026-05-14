@@ -1,4 +1,5 @@
 FROM alpine:3.22 AS audiobuilder
+# cant use 3.23 bc VERSION_OGG and cmake are 3.5 <
 
 WORKDIR /build
 
@@ -82,8 +83,20 @@ RUN wget https://github.com/xiph/ogg/archive/refs/tags/v${VERSION_OGG}.tar.gz \
     && cp audiowaveform* /bin \
     && cd /build \
     && rm -rf /audiowaveform
+    
+RUN git clone https://github.com/DiegoPino/BWFMetaEdit \
+    && cd BWFMetaEdit \
+    && git checkout alpine-linux \
+    && cd Project/GNU/CLI \
+    && autoupdate && ./autogen.sh \
+    && ./configure CFLAGS="-static" \
+    && make LDFLAGS="--static" \
+    && make install \
+    && cd /build \
+    && rm -rf /BWFMetaEdit
+    
 
-FROM php:8.3.30-fpm-alpine3.22
+FROM php:8.3.31-fpm-alpine3.23
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -330,7 +343,7 @@ apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      apk del .build-deps-pdfalto;
     
 
-RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+RUN apk add gnu-libiconv libheif --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 WORKDIR /usr/src/
@@ -434,10 +447,13 @@ RUN set -eux; \
            apk del .build-deps-imagemagick;
 
 COPY --from=audiobuilder /bin/audiowaveform /usr/bin/audiowaveform
+COPY --from=audiobuilder /usr/local/bin/bwfmetaedit /usr/bin/bwfmetaedit
 
 RUN chmod +x /usr/bin/audiowaveform \
+  && chmod +x /usr/bin/bwfmetaedit \
   && apk --no-cache add gcc zlib-static libpng-static boost-static \
-  && /usr/bin/audiowaveform --version
+  && /usr/bin/audiowaveform --version \
+  && /usr/bin/bwfmetaedit --version
 
 
 #Clean up sources, we need to keep drush one
