@@ -1,6 +1,6 @@
 # build with:
-# docker buildx build --platform linux/amd64,linux/arm64 -f  Dockerfile.dev -t esmero/php-8.3-fpm:1.5.0-dev-multiarch .
-FROM esmero/php-8.3-fpm:1.5.0-multiarch
+# docker buildx build --platform linux/amd64,linux/arm64 -f  Dockerfile.dev -t esmero/php-8.3-fpm:1.7.0-dev-multiarch .
+FROM esmero/php-8.3-fpm:1.7.0-multiarch
 
 # install the extensions we need for xdebug install
 RUN set -eux; \
@@ -9,7 +9,7 @@ RUN set -eux; \
         g++ \
         make \
 	; \
-	pecl install xdebug-3.4.4; \
+	pecl install xdebug-3.5.1; \
     apk del --no-cache .build-deps
 
 RUN { \
