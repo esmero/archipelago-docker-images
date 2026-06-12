@@ -196,7 +196,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    	echo 'zend.enable_gc = On'; \
+		echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = 512M'; \
 		echo 'max_execution_time = 300'; \
@@ -212,7 +212,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    	echo 'zend.enable_gc = On'; \
+    echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = -1'; \
 		echo 'max_execution_time = 600'; \
@@ -310,36 +310,27 @@ RUN apk update && apk add --no-cache --virtual .build-deps-tesseract \
 
 RUN pwd; uname -a;
 
-# Build PDF Alto
-WORKDIR /usr/src
-RUN git clone --depth 1 https://github.com/diegopino/pdfalto.git -b alpine
-RUN git clone https://github.com/diegopino/xpdf-4.03.git -b alpine && cp -rpv xpdf-4.03 /usr/src/pdfalto/.
+# Build PDF Alto 0.6
 
-WORKDIR /usr/src/pdfalto
+WORKDIR /usr/src
 RUN set -eux; \
 \
 apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      git \
-     cmake \
-     make \
      musl \
      musl-dev \
      g++ gcc clang clang-dev clang-extra-tools clang-libs \
-     libpng-dev \
-     icu-libs \
-     icu-dev \
      libgcc \
      tiff-dev \
-     freetype-dev \
      libc-dev \
      linux-headers \
-     libxml2-dev \
      glib \
      pkgconfig \
-     glib-dev && \
-     cd /usr/src/pdfalto/libs/image/png/src && cmake "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true" . && make && \
-     cp /usr/src/pdfalto/libs/image/png/src/libpng.a /usr/src/pdfalto/libs/image/png/linux/64/ && \
-     cd /usr/src/pdfalto && cmake . && make && make install && cp pdfalto /usr/bin/pdfalto; \
+     glib-dev \
+     autoconf automake libtool build-base alpine-sdk cmake make \
+     icu-static libxml2-static zlib-static libpng-static freetype-static libxml2-dev icu-dev  zlib-dev libpng-dev  freetype-dev fontconfig-dev xz-dev xz-static brotli-dev brotli-static bzip2-dev bzip2-static && \
+     git clone https://github.com/DiegoPino/pdfalto && cd pdfalto && git checkout alpine-3.2 && git submodule update --init --recursive &&\
+     cmake . && make && cp pdfalto /usr/bin/pdfalto; \
      apk del .build-deps-pdfalto;
     
 
@@ -462,6 +453,9 @@ RUN rm -rf /usr/local/src/ImageMagick-7.1.2-13
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
+
+# For some reason 127.0.0.1 is not working to bind to the Docker Network. But 0.0.0.0 Works
+RUN sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]
