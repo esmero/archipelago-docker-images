@@ -1,4 +1,5 @@
 FROM alpine:3.22 AS audiobuilder
+# cant use 3.23 bc VERSION_OGG and cmake are 3.5 <
 
 WORKDIR /build
 
@@ -82,8 +83,20 @@ RUN wget https://github.com/xiph/ogg/archive/refs/tags/v${VERSION_OGG}.tar.gz \
     && cp audiowaveform* /bin \
     && cd /build \
     && rm -rf /audiowaveform
+    
+RUN git clone https://github.com/DiegoPino/BWFMetaEdit \
+    && cd BWFMetaEdit \
+    && git checkout alpine-linux \
+    && cd Project/GNU/CLI \
+    && autoupdate && ./autogen.sh \
+    && ./configure CFLAGS="-static" \
+    && make LDFLAGS="--static" \
+    && make install \
+    && cd /build \
+    && rm -rf /BWFMetaEdit
+    
 
-FROM php:8.3.30-fpm-alpine3.22
+FROM php:8.3.31-fpm-alpine3.23
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -183,7 +196,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    	echo 'zend.enable_gc = On'; \
+		echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = 512M'; \
 		echo 'max_execution_time = 300'; \
@@ -199,7 +212,7 @@ RUN { \
 
 RUN { \
 		echo 'upload_max_filesize = 512M'; \
-    	echo 'zend.enable_gc = On'; \
+    echo 'zend.enable_gc = On'; \
 		echo 'post_max_size = 513M'; \
 		echo 'memory_limit = -1'; \
 		echo 'max_execution_time = 600'; \
@@ -297,40 +310,31 @@ RUN apk update && apk add --no-cache --virtual .build-deps-tesseract \
 
 RUN pwd; uname -a;
 
-# Build PDF Alto
-WORKDIR /usr/src
-RUN git clone --depth 1 https://github.com/diegopino/pdfalto.git -b alpine
-RUN git clone https://github.com/diegopino/xpdf-4.03.git -b alpine && cp -rpv xpdf-4.03 /usr/src/pdfalto/.
+# Build PDF Alto 0.6
 
-WORKDIR /usr/src/pdfalto
+WORKDIR /usr/src
 RUN set -eux; \
 \
 apk update && apk add --no-cache --virtual .build-deps-pdfalto \
      git \
-     cmake \
-     make \
      musl \
      musl-dev \
      g++ gcc clang clang-dev clang-extra-tools clang-libs \
-     libpng-dev \
-     icu-libs \
-     icu-dev \
      libgcc \
      tiff-dev \
-     freetype-dev \
      libc-dev \
      linux-headers \
-     libxml2-dev \
      glib \
      pkgconfig \
-     glib-dev && \
-     cd /usr/src/pdfalto/libs/image/png/src && cmake "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true" . && make && \
-     cp /usr/src/pdfalto/libs/image/png/src/libpng.a /usr/src/pdfalto/libs/image/png/linux/64/ && \
-     cd /usr/src/pdfalto && cmake . && make && make install && cp pdfalto /usr/bin/pdfalto; \
+     glib-dev \
+     autoconf automake libtool build-base alpine-sdk cmake make \
+     icu-static libxml2-static zlib-static libpng-static freetype-static libxml2-dev icu-dev  zlib-dev libpng-dev  freetype-dev fontconfig-dev xz-dev xz-static brotli-dev brotli-static bzip2-dev bzip2-static && \
+     git clone https://github.com/DiegoPino/pdfalto && cd pdfalto && git checkout alpine-3.2 && git submodule update --init --recursive &&\
+     cmake . && make && cp pdfalto /usr/bin/pdfalto; \
      apk del .build-deps-pdfalto;
     
 
-RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
+RUN apk add gnu-libiconv libheif --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 WORKDIR /usr/src/
@@ -345,6 +349,8 @@ RUN chmod +x drush.sh && mv drush.sh drush
 
 #Install WACZ and Fido
 WORKDIR /usr/src/
+# This is a keeper. Fido needs it. No longer a default in this alpine
+RUN apk update && apk add py3-six
 RUN set -eux; \
 \
         apk update && apk add --no-cache --virtual .build-deps-py \
@@ -353,20 +359,23 @@ RUN set -eux; \
          py3-pip \
          py3-wheel \
          py3-setuptools\
+         py3-six \
          linux-headers \
          musl-dev \
          && \
-         wget https://github.com/openpreserve/fido/archive/v1.6.1.zip && \
-         unzip v1.6.1.zip -d /usr/src/ && \
-         cd /usr/src/fido-1.6.1 && chmod 755 setup.py && ./setup.py install &&\
-		 cd /usr/src &&\
 		 python3 -m venv .venv && \
 		 source .venv/bin/activate && \
+		 python -m pip install --upgrade pip setuptools wheel && \
+		 cd /usr/src &&\
 		 pwd && \
-		 python3 -m pip install setuptools && \
-         git clone https://github.com/webrecorder/py-wacz /usr/src/wacz && \
-         cd /usr/src/wacz/ && git checkout main && \
-         python3 -m pip install -r requirements.txt --ignore-installed packaging && chmod 755 setup.py && ./setup.py install && \
+		 python3 -m pip install opf-fido &&\
+		 # Copy from virtual env to /usr/bin
+		 cp /usr/src/.venv/bin/fido /usr/bin/fido && \
+		 # Using my never ending clone of stuff that is not actively maintained?
+         git clone https://github.com/DiegoPino/py-wacz /usr/src/wacz && \
+         cd /usr/src/wacz/ && git checkout py-3.12 && \
+         python3 -m pip install -r requirements.txt && chmod 755 setup.py && ./setup.py install && \
+         # Copy from virtual env to /usr/bin
 		 cp /usr/src/.venv/bin/wacz /usr/bin/wacz && \
 		 deactivate;
 
@@ -404,8 +413,8 @@ RUN set -eux; \
            linux-headers \
            musl-dev \
            && cd /usr/local/src/ \
-           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.1-47.tar.gz \
-           && tar xzvf ImageMagick-7.1.1-47.tar.gz && rm ImageMagick-7.1.1-47.tar.gz && cd ImageMagick-7.1.1-47 && \
+           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.2-13.tar.gz \
+           && tar xzvf ImageMagick-7.1.2-13.tar.gz && rm ImageMagick-7.1.2-13.tar.gz && cd ImageMagick-7.1.2-13 && \
             ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --mandir=/usr/share/man \
@@ -413,7 +422,7 @@ RUN set -eux; \
             --enable-static \
             --disable-openmp \
             --with-threads \
-            --with-openjp2 \
+            --with-openjp2=yes \
             --with-x \
             --with-tiff \
             --with-png \
@@ -429,19 +438,24 @@ RUN set -eux; \
            apk del .build-deps-imagemagick;
 
 COPY --from=audiobuilder /bin/audiowaveform /usr/bin/audiowaveform
+COPY --from=audiobuilder /usr/local/bin/bwfmetaedit /usr/bin/bwfmetaedit
 
 RUN chmod +x /usr/bin/audiowaveform \
+  && chmod +x /usr/bin/bwfmetaedit \
   && apk --no-cache add gcc zlib-static libpng-static boost-static \
-  && /usr/bin/audiowaveform --version
+  && /usr/bin/audiowaveform --version \
+  && /usr/bin/bwfmetaedit --version
 
 
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/src/wacz
-RUN rm -rf /usr/src/fido-1.6.1
-RUN rm -rf /usr/local/src/ImageMagick-7.1.1-47
+RUN rm -rf /usr/local/src/ImageMagick-7.1.2-13
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
+
+# For some reason 127.0.0.1 is not working to bind to the Docker Network. But 0.0.0.0 Works
+RUN sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf
 
 # Change to bash since our folks like bash
 SHELL ["/bin/bash", "-c"]

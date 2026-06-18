@@ -13,19 +13,19 @@ RUN apt-get update \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_VERSION=jdk-23.0.1
-# From https://jdk.java.net/23/
+ENV JAVA_VERSION=jdk-26.0.1
+# From https://jdk.java.net/26/
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
     case "${ARCH}" in \
        aarch64|arm64) \
-         ESUM='94586630f70f1e87d90c252a6a2a202655399d1358c9b226834179e8bcf800e9'; \
-         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-aarch64_bin.tar.gz' \
+         ESUM='12a3649b2f4a0c9f6491d220bdd04b4fff07cae502b435aaff46eac0e36f4df1'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk26.0.1/458fda22e4c54d5ba572ab8d2b22eb83/8/GPL/openjdk-26.0.1_linux-aarch64_bin.tar.gz' \
          ;; \
       
        amd64|x86_64) \
-         ESUM='dc9b6adc1550afd95e30e131c1c38044925cb656923f92f6dbf0fbd8c1405629'; \
-         BINARY_URL='https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1_linux-x64_bin.tar.gz'; \
+         ESUM='2f2802d57b5fc414f1ddf6648ba12cc9a6454cf67b32ac95407c018f2e6ab0b0'; \
+         BINARY_URL='https://download.java.net/java/GA/jdk26.0.1/458fda22e4c54d5ba572ab8d2b22eb83/8/GPL/openjdk-26.0.1_linux-x64_bin.tar.gz'; \
          ;; \
        *) \
          echo "Unsupported arch: ${ARCH}"; \
@@ -47,9 +47,8 @@ ENV JAVA_HOME=/opt/java/openjdk \
 # $ sudo docker run -d --rm -p 8183:8182 -v ./cantaloupeconfig:/etc/cantaloupe --name esmero-cantaloupe esmero-cantaloupe
 
 # Publish new tag -- PRIVATE
-# $ docker login (user diegopino) use your own name folks!
-# $ docker build . -t esmero/cantaloupe-s3:6.0.5
-# $ docker push esmero/cantaloupe-s3:6.0.5
+# $ docker login / use your own name folks!
+# $ docker buildx build --no-cache --platform linux/amd64,linux/arm64 -t esmero/cantaloupe-s3:6.0.6-noturbojpeg-multiarch . --push
 
 ENV CANTALOUPE_VERSION=6.0.0
 
@@ -140,9 +139,9 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends maven unzip
 
-RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-771 \
+RUN git clone https://github.com/cantaloupe-project/cantaloupe.git /usr/local/cantaloupe-build && cd /usr/local/cantaloupe-build && git checkout ISSUE-722 \
  && cp /usr/local/cantaloupe-build/dist/deps/Linux-x86-64/lib/*.so /usr/lib/ \
- && mvn clean package -DskipTests \ 
+ && mvn clean package -DskipTests \
  && mkdir /usr/local/cantaloupe/ \
  && mkdir -p /etc/cantaloupe
 
