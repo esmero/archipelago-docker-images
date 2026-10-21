@@ -96,7 +96,7 @@ RUN git clone https://github.com/DiegoPino/BWFMetaEdit \
     && rm -rf /BWFMetaEdit
     
 
-FROM php:8.3.31-fpm-alpine3.23
+FROM esmero/8.3.36-fpm-alpine3.23
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
