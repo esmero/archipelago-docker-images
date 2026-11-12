@@ -96,7 +96,7 @@ RUN git clone https://github.com/DiegoPino/BWFMetaEdit \
     && rm -rf /BWFMetaEdit
     
 
-FROM esmero/8.3.36-fpm-alpine3.23
+FROM php:8.4-fpm-alpine3.23
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
 
@@ -413,8 +413,8 @@ RUN set -eux; \
            linux-headers \
            musl-dev \
            && cd /usr/local/src/ \
-           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.2-13.tar.gz \
-           && tar xzvf ImageMagick-7.1.2-13.tar.gz && rm ImageMagick-7.1.2-13.tar.gz && cd ImageMagick-7.1.2-13 && \
+           && wget https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.2-35.tar.gz \
+           && tar xzvf ImageMagick-7.1.2-35.tar.gz && rm ImageMagick-7.1.2-35.tar.gz && cd ImageMagick-7.1.2-35 && \
             ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --mandir=/usr/share/man \
@@ -449,7 +449,7 @@ RUN chmod +x /usr/bin/audiowaveform \
 
 #Clean up sources, we need to keep drush one
 RUN rm -rf /usr/src/wacz
-RUN rm -rf /usr/local/src/ImageMagick-7.1.2-13
+RUN rm -rf /usr/local/src/ImageMagick-7.1.2-35
 RUN rm -rf /usr/local/src/tesseract
 RUN rm -rf /usr/src/pdfalto
 RUN rm -rf /usr/src/xpdf
