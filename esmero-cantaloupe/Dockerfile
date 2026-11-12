@@ -13,7 +13,7 @@ RUN apt-get update \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_VERSION=jdk-26.0.1
+ENV JAVA_VERSION=jdk-27
 # From https://jdk.java.net/26/
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
