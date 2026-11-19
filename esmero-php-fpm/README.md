@@ -42,3 +42,18 @@ To build the debug image for developing, after building and pushing the image ab
 ```docker
 docker buildx build --platform linux/amd64,linux/arm64 -t esmero/php-8.4-fpm:2.2.0-dev-multiarch . --push --file Dockerfile.dev
 ```
+### Security
+
+Under a CRITICAL Security Advisory (normally a Thursday/every 4 weeks!), the faster/preferred way of building this container is against a freshly build PHP base one.
+
+For that: `git clone https://github.com/docker-library/php`, navigate to the version folder, distribution and fpm folder you want to base this one.
+e.g `8.4/alpine3.23/fpm`
+
+Verify that the Dockerfile is targeting the exact version you want (if not edit to fetch the source form a different release tag/tar)
+and build a new base one using a command like this:
+
+```docker
+docker buildx build --platform linux/amd64,linux/arm64 -t esmero/8.4.28-fpm-alpine3.23 . --push`
+```
+
+Then edit this repository's Dockerfile to use as base image the newly created one.
